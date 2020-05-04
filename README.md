@@ -7,6 +7,14 @@
 
 <!-- badges: end -->
 
+Antonio Paez (<paezha@mcmaster.ca>)  
+School of Geography and Earth Science  
+McMaster University  
+1280 Main Street West, Hamilton, ON L8S 4K1  
+Canada
+
+(paper submitted to Transport Findings on May 3, 2020)
+
 ## Abstract
 
 In 2020 Google released a set of Community Mobility Reports (GCMR).

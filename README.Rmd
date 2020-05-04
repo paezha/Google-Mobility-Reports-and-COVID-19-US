@@ -18,6 +18,14 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
+Antonio Paez (paezha@mcmaster.ca)  
+School of Geography and Earth Science  
+McMaster University  
+1280 Main Street West, Hamilton, ON L8S 4K1  
+Canada  
+
+(paper submitted to Transport Findings on May 3, 2020)
+
 ## Abstract
 
 In 2020 Google released a set of Community Mobility Reports (GCMR). These reports are based on the company's location-tracking capabilities and measure changes in mobility with respect to a baseline. This novel source of data offers an opportunity to investigate the way mobility potentially correlates with transmission of COVID-19. Using data from the New York Times on COVID-19 cases and GCMR, this paper presents an analysis of mobility levels and new daily reported cases of COVID-19 by state in the US. The results provide insights about the utility and interpretability of GCMR for COVID-19 research and decision-making.
