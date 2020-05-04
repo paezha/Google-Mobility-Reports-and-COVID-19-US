@@ -1,0 +1,629 @@
+---
+title: Using Google Community Mobility Reports to investigate the growth of COVID-19 in the United States
+author:
+  - name: Antonio Paez
+    email: paezha@mcmaster.ca
+    affiliation: McMaster University
+    footnote: 1
+address:
+  - code: McMaster University
+    address: School of Geography and Earth Sciences, McMaster University, Hamilton, ON, L8S 4K1, Canada
+footnote:
+  - code: 1
+    text: "Corresponding Author"
+abstract: |
+   In 2020 Google released a set of Community Mobility Reports (GCMR). These reports are based on the company's location-tracking capabilities and measure changes in mobility with respect to a baseline. This novel source of data offers an opportunity to investigate the way mobility potentially correlates with transmission of COVID-19. Using data from the New York Times on COVID-19 cases and GCMR, this paper presents an analysis of mobility levels and new daily reported cases of COVID-19 by state in the US. The results provide insights about the utility and interpretability of GCMR for COVID-19 research and decision-making.
+
+journal: "Transportation Findings"
+date: "`r Sys.Date()`"
+bibliography: References.bib
+#linenumbers: true
+#numbersections: true
+csl: elsevier-harvard.csl
+output: rticles::elsevier_article
+---
+
+```{r load-packages, include=FALSE}
+#Load the packages needed to read and work with the data
+library(adespatial)
+library(countrycode)
+library(gridExtra)
+library(interactions)
+library(jtools)
+library(kableExtra)
+library(lubridate)
+library(metR)
+library(plotly)
+library(RCurl)
+library(sf)
+library(spdep)
+library(tidyverse)
+library(tigris)
+library(usmap)
+library(wppExplorer)
+```
+
+```{r gcmr-data-read-and-save, eval=FALSE, include=FALSE}
+# Run only to read more recent data
+#Retrieve data:
+download <- getURL("https://www.gstatic.com/covid19/mobility/Global_Mobility_Report.csv?cachebust=911a386b6c9c230f")
+gmobility <- read.csv (text = download)
+
+#Save as RData to keep a local copy of the mobility report:
+save(gmobility, file = "gmobility.RData")
+```
+
+```{r load-saved-gcmr-data, include=FALSE}
+#Load data:
+load("gmobility.RData")
+```
+
+```{r extract-gcmr-for-us, include=FALSE}
+gmobility <- gmobility %>%
+  filter(country_region == "United States") %>%
+  droplevels()
+```
+
+```{r prepare-mobility-report-data, include=FALSE}
+#`date` is stored as a factor which is not ideal work with times; Change format:
+gmobility <- gmobility %>%
+  mutate(date = lubridate::ymd(date)) %>%
+  #rename the annoyingly long names of the columns to something more practical
+  transmute(date,
+            state = as.character(sub_region_1),
+         county = as.character(sub_region_2),
+         r_and_r = retail_and_recreation_percent_change_from_baseline, 
+         g_and_p = grocery_and_pharmacy_percent_change_from_baseline, 
+         parks = parks_percent_change_from_baseline,
+         transit = transit_stations_percent_change_from_baseline, 
+         work = workplaces_percent_change_from_baseline,
+         residential = residential_percent_change_from_baseline) %>%
+  #convert the mobility indicators to differences from the baseline, so "1" is the baseline value
+  mutate(r_and_r = 1 + r_and_r/100,
+         g_and_p = 1 + g_and_p/100,
+         parks = 1 + parks/100,
+         transit = 1 + transit/100,
+         work = 1 + work/100,
+         residential = 1 + residential/100)
+```
+
+```{r filter-state-gcmr-data, include=FALSE}
+#To extract the state-level mobility indicators select those records that do not include the label for the county (i.e., sub_region_2 is empty), and that are not national level statistics (i.e., sub_region_1 is not empty)
+cmr <- gmobility %>%
+  filter(state !="", 
+         county == "")
+```
+
+```{r nyt-covid-19-data-read-and-save, eval=FALSE, include=FALSE}
+# Run only to read more recent data
+#retrieve data
+c19 <- read.csv(file.path("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv"),
+                 check.names = FALSE, 
+                 stringsAsFactors = TRUE) %>%
+  mutate(date = ymd(date))
+
+#Save as RData to keep a local copy of the reports:
+save(c19, file = "covid19_nyt.RData")
+```
+
+```{r load-saved-covid-19-data, include=FALSE}
+#Load data:
+load("covid19_nyt.RData")
+```
+
+```{r coterminous-states, include=FALSE}
+#filter states to keep only the coterminous states
+c19 <- c19 %>%
+  filter(state != "Hawaii",
+         state != "Alaska",
+         state != "United States Virgin Islands",
+         state != "Commonwealth of the Northern Mariana Islands",
+         state != "Guam",
+         state != "American Samoa",
+         state != "Puerto Rico")
+```
+
+```{r add-day-variable, include=FALSE}
+#add day variable:
+c19 <- c19 %>%
+  mutate(day = yday(date) - min(yday(date)))
+```
+
+```{r calculate-new-daily-cases, include=FALSE}
+#o calculate the number of new daily cases by state, we need to lag the Cases variable and substract the previous total:
+c19 <- c19 %>%
+  group_by(state) %>%
+  mutate(new_cases = cases - lag(cases, 1)) %>%
+  ungroup() %>%
+  #there is one record with a negative number of new cases, likely a correction (Georgia in 2020-04-12). Remove record:
+  filter(new_cases >= 0)
+```
+
+```{r state-population-data, include=FALSE}
+#Retrieve population data:
+population <- statepop %>%
+  transmute(pop_2015, state = full)
+```
+
+```{r join-population-to-covid-19-data, include=FALSE}
+#Join population to covid-19 data:
+c19 <- c19 %>%
+  mutate(state = as.character(state)) %>%
+  left_join(population, by = c("state" = "state"))
+```
+
+```{r calculate-incidence, include=FALSE}
+#Calculate the incidence of reported cases by 100,000 population:
+c19 <- c19 %>%
+  mutate(incidence = cases/(pop_2015/100000),
+         log_incidence = log(incidence))
+```
+
+```{r calculate-log-new-cases, include=FALSE}
+#calculate log of new cases
+c19 <- c19 %>% 
+  mutate(log_new_cases = log(new_cases + 0.001))
+```
+
+```{r join-gcmr-and-covid-19-data, include=FALSE}
+#Join the tables:
+c19 <- c19 %>% 
+  mutate(state = as.character(state)) %>%
+  left_join(cmr, by = c("state" = "state", "date" = "date"))
+```
+
+```{r calculate-lagged-mobility-indicators, include=FALSE}
+#The potential salutary effect of the lockdown (measured in terms of reduced mobility) are not immediate, given the incubation period of the disease. The incubation period has been estimated to be between 2 and 11 days (95% interval) by [Lauer et al. (2020)](https://annals.org/aim/fullarticle/2762808/incubation-period-coronavirus-disease-2019-covid-19-from-publicly-reported). If we wanted to explore the way reduced mobility correlates with number of new cases, we would need to lag the mobility variables by some period. 
+
+# Lagged retail and recreation: 11 day moving average
+r_and_r_lag11 <- cmr %>% 
+  group_by(state) %>%
+  group_modify(~ {((lag(.x$r_and_r, 12) + 
+                      lag(.x$r_and_r, 11) + 
+                      lag(.x$r_and_r, 10) + 
+                      lag(.x$r_and_r, 9) + 
+                      lag(.x$r_and_r, 8) + 
+                      lag(.x$r_and_r, 7) + 
+                      lag(.x$r_and_r, 6) + 
+                      lag(.x$r_and_r, 5) + 
+                      lag(.x$r_and_r, 4) + 
+                      lag(.x$r_and_r, 3) + 
+                      lag(.x$r_and_r, 2))/11) %>%
+      enframe()}) %>%
+  ungroup() %>%
+  transmute(Mean_r_and_r_lag11 = value)  %>%
+  cbind(cmr) %>%
+  transmute(state = as.character(state), 
+            date, Mean_r_and_r_lag11)
+
+# Lagged groceries and pharmacies: 11 day moving average
+g_and_p_lag11 <- cmr %>% 
+  group_by(state) %>%
+  group_modify(~ {((lag(.x$g_and_p, 12) + 
+                      lag(.x$g_and_p, 11) + 
+                      lag(.x$g_and_p, 10) + 
+                      lag(.x$g_and_p, 9) + 
+                      lag(.x$g_and_p, 8) + 
+                      lag(.x$g_and_p, 7) + 
+                      lag(.x$g_and_p, 6) + 
+                      lag(.x$g_and_p, 5) + 
+                      lag(.x$g_and_p, 4) + 
+                      lag(.x$g_and_p, 3) + 
+                      lag(.x$g_and_p, 2))/11) %>%
+      enframe()}) %>%
+  ungroup() %>%
+  transmute(Mean_g_and_p_lag11 = value)  %>%
+  cbind(cmr) %>%
+  transmute(state = as.character(state), 
+            date, Mean_g_and_p_lag11)
+
+# Lagged parks: 11 day moving average
+parks_lag11 <- cmr %>% 
+  group_by(state) %>%
+  group_modify(~ {((lag(.x$parks, 12) + 
+                      lag(.x$parks, 11) + 
+                      lag(.x$parks, 10) + 
+                      lag(.x$parks, 9) + 
+                      lag(.x$parks, 8) + 
+                      lag(.x$parks, 7) + 
+                      lag(.x$parks, 6) + 
+                      lag(.x$parks, 5) + 
+                      lag(.x$parks, 4) + 
+                      lag(.x$parks, 3) + 
+                      lag(.x$parks, 2))/11) %>%
+      enframe()}) %>%
+  ungroup() %>%
+  transmute(Mean_parks_lag11 = value)  %>%
+  cbind(cmr) %>%
+  transmute(state = as.character(state), 
+            date, Mean_parks_lag11)
+
+# Lagged groceries and pharmacies: 11 day moving average
+transit_lag11 <- cmr %>% 
+  group_by(state) %>%
+  group_modify(~ {((lag(.x$transit, 12) + 
+                      lag(.x$transit, 11) + 
+                      lag(.x$transit, 10) + 
+                      lag(.x$transit, 9) + 
+                      lag(.x$transit, 8) + 
+                      lag(.x$transit, 7) + 
+                      lag(.x$transit, 6) + 
+                      lag(.x$transit, 5) + 
+                      lag(.x$transit, 4) + 
+                      lag(.x$transit, 3) + 
+                      lag(.x$transit, 2))/11) %>%
+      enframe()}) %>%
+  ungroup() %>%
+  transmute(Mean_transit_lag11 = value)  %>%
+  cbind(cmr) %>%
+  transmute(state = as.character(state), 
+            date, Mean_transit_lag11)
+
+# Lagged groceries and pharmacies: 11 day moving average
+work_lag11 <- cmr %>% 
+  group_by(state) %>%
+  group_modify(~ {((lag(.x$work, 12) + 
+                      lag(.x$work, 11) + 
+                      lag(.x$work, 10) + 
+                      lag(.x$work, 9) + 
+                      lag(.x$work, 8) + 
+                      lag(.x$work, 7) + 
+                      lag(.x$work, 6) + 
+                      lag(.x$work, 5) + 
+                      lag(.x$work, 4) + 
+                      lag(.x$work, 3) + 
+                      lag(.x$work, 2))/11) %>%
+      enframe()}) %>%
+  ungroup() %>%
+  transmute(Mean_work_lag11 = value)  %>%
+  cbind(cmr) %>%
+  transmute(state = as.character(state), 
+            date, Mean_work_lag11)
+
+# Lagged residential: 11 day moving average
+residential_lag11 <- cmr %>% 
+  group_by(state) %>%
+  group_modify(~ {((lag(.x$residential, 12) + 
+                      lag(.x$residential, 11) + 
+                      lag(.x$residential, 10) + 
+                      lag(.x$residential, 9) + 
+                      lag(.x$residential, 8) + 
+                      lag(.x$residential, 7) + 
+                      lag(.x$residential, 6) + 
+                      lag(.x$residential, 5) + 
+                      lag(.x$residential, 4) + 
+                      lag(.x$residential, 3) + 
+                      lag(.x$residential, 2))/11) %>%
+      enframe()}) %>%
+  ungroup() %>%
+  transmute(Mean_residential_lag11 = value)  %>%
+  cbind(cmr) %>%
+  transmute(state = as.character(state), 
+            date, Mean_residential_lag11)
+```
+
+```{r join-lagged-indicators, include=FALSE}
+#join lagged mobility indicators to table:
+c19 <- c19 %>%
+  mutate(state = as.character(state)) %>%
+  left_join(r_and_r_lag11, by = c("state" = "state", "date" = "date")) %>%
+  left_join(g_and_p_lag11, by = c("state" = "state", "date" = "date"))  %>%
+  left_join(parks_lag11, by = c("state" = "state", "date")) %>%
+  left_join(transit_lag11, by = c("state" = "state", "date")) %>%
+  left_join(work_lag11, by = c("state" = "state", "date")) %>%
+  left_join(residential_lag11, by = c("state" = "state", "date"))
+```
+
+```{r remove-nas, include=FALSE}
+#Remove all the "NAs" to obtain a clean table with COVID-19 and mobility information:
+c19 <- c19 %>%
+  drop_na()
+```
+
+```{r prepare-variables-for-analysis, include=FALSE}
+#replace mobility indicators by their lagged moving averages
+c19 <- c19 %>% 
+  mutate(retail = Mean_r_and_r_lag11,
+         groceries = Mean_g_and_p_lag11,
+         parks = Mean_parks_lag11,
+         parks2 = Mean_parks_lag11^2,
+         transit = Mean_transit_lag11,
+         work = Mean_work_lag11,
+         residential = Mean_residential_lag11,
+         residential2 = Mean_residential_lag11^2,
+         parksXresidential = parks * residential,
+         day2 = day^2,
+         parksXday = parks * day,
+         parksXday2 = parks * day2,
+         residentialXday = residential * day,
+         residentialXday2 = residential * day2,
+         NY = ifelse(state == "New York", 1, 0),
+         NYxday = NY * day)
+```
+
+Research Questions and Hypotheses
+==========================
+
+The main policy tool to control the spread of the COVID-19 pandemic has been stay-at-home orders. Concurrently, numerous efforts exist to track the progress and the impact of the pandemic, and new sources of data include the recently-released Google Community Mobility Reports (GCMR)\footnote{https://www.google.com/covid19/mobility/}, as well as The New York Times repository of COVID-19 data\footnote{https://github.com/nytimes/covid-19-data}. These two open data sets offer novel opportunities to investigate in quasi-real time the relationship between mobility patterns and transmission of COVID-19.
+
+This paper investigates the potential of Google Community Mobility Reports to asses the impact of mobility on COVID-19. The following questions are posed:
+
+- Do changes in mobility according to GCMR correlate with the transmission of COVID-19?
+- And if so, what do we learn about mobility and the spread of the disease?
+
+The source document for this paper is an `R` markdown document available from the following repository:
+
+https://github.com/paezha/Google-Mobility-Reports-and-COVID-19-US
+
+Methods and Data
+============
+
+GCMR use aggregated and anonymized data to chart changes in mobility with respect to different classes of places, namely retail and recreation, groceries and pharmacies, parks, transit stations, workplaces, and residential. Mobility indicators for each of these places are reported as percentage changes from a baseline level, which corresponds to the median value of mobility of identical days of the week during the period between January 3 and Feb 6, 2020. Covid-19 data is compiled by The New York Times based on reports from state and local health agencies.
+
+For analysis, all mobility indicators are centered so that the value of 1 is the base mobility, and a 0.01 deviation corresponds to a 1% change. The incubation time of the disease has been estimated to be between 2 and 12 days (95% interval) by Lauer et al. [-@Lauer2020incubation]. Given this, it is to be expected that any changes in mobility will have a lagged effect on the discovery of new cases. For this reason, lagged moving averages of the mobility indicators are calculated. Furthermore, it is possible that mobility and reports of new cases of COVID-19 are endogenous, if the public adjust their mobility according to reports of the incidence. Therefore, in addition to being consistent with an incubation period, use of lagged indicators also helps to break this potential endogeneity.
+
+```{r descriptive-statistics, echo=FALSE}
+data.frame(Variable = c("New Cases",
+                        "date",
+                        "retail",
+                        "groceries",
+                        "parks",
+                        "transit",
+                        "work",
+                        "residential"),
+           Definition = c("New Daily Cases of COVID-19",
+                        "Date",
+                        "Retail and Recreation",
+                        "Groceries and Pharmacies",
+                        "Parks",
+                        "Transit Stations",
+                        "Workplaces",
+                        "Residential"),
+           min = c(as.character(min(c19$new_cases)),
+                   as.character(min(c19$date)),
+                   as.character(round(min(c19$retail), 2)),
+                   as.character(round(min(c19$groceries), 2)),
+                   as.character(round(min(c19$parks), 2)),
+                   as.character(round(min(c19$transit), 2)),
+                   as.character(round(min(c19$work), 2)),
+                   as.character(round(min(c19$residential), 2))),
+           median = c(as.character(median(c19$new_cases)),
+                   as.character(median(c19$date)),
+                   as.character(round(median(c19$retail), 2)),
+                   as.character(round(median(c19$groceries), 2)),
+                   as.character(round(median(c19$parks), 2)),
+                   as.character(round(median(c19$transit), 2)),
+                   as.character(round(median(c19$work), 2)),
+                   as.character(round(median(c19$residential), 2))),
+           max = c(as.character(max(c19$new_cases)),
+                   as.character(max(c19$date)),
+                   as.character(round(max(c19$retail), 2)),
+                   as.character(round(max(c19$groceries), 2)),
+                   as.character(round(max(c19$parks), 2)),
+                   as.character(round(max(c19$transit), 2)),
+                   as.character(round(max(c19$work), 2)),
+                   as.character(round(max(c19$residential), 2))),
+           sd = c(as.character(round(sd(c19$new_cases), 2)),
+                   as.character(""),
+                   as.character(round(sd(c19$retail), 2)),
+                   as.character(round(sd(c19$groceries), 2)),
+                   as.character(round(sd(c19$parks), 2)),
+                   as.character(round(sd(c19$transit), 2)),
+                   as.character(round(sd(c19$work), 2)),
+                   as.character(round(sd(c19$residential), 2)))) %>%
+  kable("latex",
+        booktabs = TRUE,
+        caption = "\\label{tab:descriptive-statistics}Descriptive statistics of the data set") %>%
+  kable_styling(latex_options = c("striped", "scale_down", "hold_position")) %>%
+  footnote(general = "All mobility indicators are lagged 11-day moving averages")
+```
+
+The lagged indicators are calculated as the mean of the mobility indicator using the values from date-minus-12-days to date-minus-2-days. Furthermore, using the cumulative number of reported COVID-19 cases, the total number of new daily cases is calculated. This variable (log-transformed after adding a small constant) is paired to the corresponding lagged moving average of the mobility indicators. The log-transformation is useful to avoid negative values of daily new cases when making predictions. Analysis is based on correlation analysis, multivariate regression, and data visualization. Table \ref{tab:descriptive-statistics} shows the descriptive statistics of the data set. Temporal coverage is from February 27 to April 26, 2020. The maximum number of new daily cases during this period is 12,126.
+
+Findings
+===================
+
+Table \ref{tab:correlation-analysis} shows that the mobility indicators are highly correlated with each other. This is not surprising: it is well-known that mobility involves time-use trade-offs: the more there is of one kind of mobility, the less time there is available for any other. That said, the strongest correlation with the outcome of interest is for residential-based mobility. To avoid multicollinearity, parks-related mobility is selected as a covariate since it has the lowest correlation with residential-based mobility.
+
+```{r check-correlations, echo=FALSE}
+#Check the correlation between the mobility indicators and incidence:
+c19 %>% 
+  select(log_new_cases, retail, groceries, parks, transit, work, residential) %>%
+  cor(use = "pairwise.complete.obs") %>%
+  kable("latex",
+        booktabs = TRUE,
+        digits = 2,
+        caption = "\\label{tab:correlation-analysis}Simple correlation between log(New Cases) and the mobility indicators")  %>%
+  kable_styling(latex_options = c("striped", "scale_down", "hold_position")) %>%
+  footnote(general = "All mobility indicators are lagged 11-day moving averages")
+```
+
+A regression model uses the log of new daily cases as the dependent variable. The covariates are parks- and residential-related mobility, which enter the regression in the form of a second order polynomial expansion. In addition, the date is introduced to account for the temporal trend of the pandemic. Finally, an indicator variable for the state of New York and an interaction with the date are used to distinguish the unusually high incidence of the disease there. The results appear in Table \ref{tab:model-results}. The model provides a good fit to the data and all variables reported are significant at $p<0.05$ or better.
+
+There is an overall temporal trend that indicates a growing number of cases over time, but at a decreasing rate (see negative sign of date^2). New York has on average more new daily cases than the rest of the states, but this has also declined over time (see negative sign of NY x date). Visualization is the most effective way to understand the trend according to the mobility indicators and date. Figure \ref{fig:prediction-plots} shows the prediction surfaces on three different dates: March 21, when the first states began implementing stay-at-home orders; April 5, fifteen days later; and April 20, fifteen more days later, and at a time when some states are considering relaxing stay-at-home orders. On March 21 there were still only minor departures from baseline mobility (recall that these are temporally lagged); the prediction surface at this point is relatively flat. This changes by April 5, when large increases in residential-based mobility are seen, along with greater variations in parks-based mobility. The prediction surface indicates an expectation of a greater number of new daily cases as both classes of mobility increase. On the last date examined, April 20, the trend becomes more steep for park-based mobility, even as this indicator continues to display large variations from the baseline in both directions. In general, higher levels of mobility tend to be associates with a higher number of new daily cases.
+
+```{r model-estimation, include=FALSE}
+#This is the regression model (forcing the regression through the intercept):
+mod1 <- lm(log_new_cases ~  0 +
+             day +
+             day2 +
+             parks2 + 
+             parks + 
+             parksXresidential +
+             residential +
+             residential2 +
+             parksXday + 
+             #parksXday2 +
+             residentialXday +
+             residentialXday2 +
+             NY + 
+             NYxday, 
+           data = c19 #%>% filter(date >= "2020-04-01")
+           )
+summ(mod1)
+```
+
+```{r model-results, echo = FALSE}
+data.frame(Variable = c("date",
+                        "date^2",
+                        "parks^2",
+                        "parks",
+                        "parks x residential",
+                        "residential",
+                        "residential^2",
+                        "parks x date",
+                        "residential x date",
+                        "residential x date^2",
+                        "NY",
+                        "NY x date"),
+           Coefficient = as.numeric(coefficients(mod1)),
+           pval = as.numeric(summary(mod1)$coefficients[,4])) %>%
+  mutate(pval = ifelse(pval >= 0.0001, round(pval, 4), "<0.0001")) %>%
+  kable("latex",
+        booktabs = TRUE,
+        digits = 4,
+        caption = "\\label{tab:model-results}Results of estimating regression model. Dependent variable is log(New Cases + 0.0001).",
+        align = c("l", "c", "c"),
+        col.names = c("Variable", "Coefficient Estimate", "p-value")) %>%
+  kable_styling(latex_options = c("striped", "hold_position")) %>%
+  footnote(general = c(paste("Coefficient of Determination $R^2$=", round(summary(mod1)$r.squared, 3)),
+                       paste("Adjusted Coefficient of Determination $R^2$=", round(summary(mod1)$adj.r.squared, 3)),
+                       paste("Standard Error $\\\\sigma$=", round(summary(mod1)$sigma, 3))),
+           escape = FALSE)
+```
+
+```{r summary-of-variables-for-prediction-grid, include=FALSE}
+c19 %>% 
+  #filter(day == 59) %>% 
+  select(date, day, parks, residential) %>%
+  summary()
+```
+
+```{r create-prediction-grid, include=FALSE}
+new.data = expand.grid(parks = seq(0.36, 1.798, by = 0.01),
+                       residential = seq(0.9736, 1.26, by = 0.01),
+                       day = seq(37, 96, 1),
+                       NY = c(0, 1)) %>%
+  mutate(parks2 = parks^2,
+         residential2 = residential^2,
+         parksXresidential = parks * residential,
+         day2 = day^2,
+         parksXday = parks * day,
+         parksXday2 = parks2 * day2,
+         residentialXday = residential * day,
+         residentialXday2 = residential * day2,
+         NYxday = NY * day)
+
+new.data <- data.frame(new.data, log_new_cases = predict(mod1, newdata = new.data))
+```
+
+```{r check-dates-for-examples, include=FALSE}
+c19 %>% filter(date == "2020-04-20" | date == "2020-03-21" | date == "2020-04-05" ) %>% select(date, day) %>% distinct()
+```
+
+```{r check-mobility-indicators-on-2020-03-21, include=FALSE}
+c19 %>% filter(date == "2020-03-21") %>% select(day, parks, residential) %>% summary()
+```
+
+```{r plot-03-21, include=FALSE, fig.cap="\\label{fig:plot-03-21}Prediction surface at various levels of the mobility indicators on March 21, 2020"}
+plot_03_21 <- ggplot(data = new.data %>% filter(day == 60, parks >= 0.8527 & parks <= 1.5555, residential >= 1.025 & residential <= 1.09),
+       aes(x = parks,
+           y = residential)) +
+  geom_tile(aes(fill = log_new_cases)) + 
+  geom_contour(aes(z = log_new_cases), color = "white") +
+  #geom_text_contour(aes(z = incidence), stroke = 0.1, size = 3.5) +
+  geom_point(data = c19 %>% filter(day == 60, state != "New York" & 
+                                     state != "District of Columbia") %>% 
+               select(parks, residential)) +
+  geom_text(data = c19 %>% 
+              filter(day == 60,
+                     state == "Arkansas" |
+                       state == "Mississippi" |
+                       state == "Oklahoma" |
+                       state == "Idaho" |
+                       state == "New Jersey" |
+                       state == "Michigan" |
+                       state == "California") %>%
+              select(parks, residential, state), 
+            aes(label = state),
+            nudge_y = -0.01) +
+  scale_fill_distiller(name = "log(New Cases)", palette = "Reds", direction = 1) +
+  theme_light() +
+  ggtitle("March 21, 2020")
+```
+
+```{r check-mobility-indicators-on-2020-04-05, include=FALSE}
+c19 %>% filter(date == "2020-04-05") %>% select(day, parks, residential) %>% summary()
+```
+
+```{r plot-04-05, include=FALSE, fig.cap="\\label{fig:plot-04-05}Prediction surface at various levels of the mobility indicators on April 05, 2020"}
+plot_04_05 <- ggplot(data = new.data %>% filter(day == 75, parks >= 0.4545 & parks <= 1.6009, residential >= 1.122 & residential <= 1.253),
+       aes(x = parks,
+           y = residential)) +
+  geom_tile(aes(fill = log_new_cases)) + 
+  geom_contour(aes(z = log_new_cases), color = "white") +
+  #geom_text_contour(aes(z = incidence), stroke = 0.1, size = 3.5) +
+  geom_point(data = c19 %>% filter(day == 75, state != "New York" & 
+                                     state != "District of Columbia") %>% 
+               select(parks, residential)) +
+  geom_text(data = c19 %>% 
+              filter(day == 75,
+                     state == "Arkansas" |
+                       state == "Mississippi" |
+                       state == "Oklahoma" |
+                       state == "Idaho" |
+                       state == "New Jersey" |
+                       state == "Michigan" |
+                       state == "California") %>%
+              select(parks, residential, state), 
+            aes(label = state),
+            nudge_y = -0.01) +
+  scale_fill_distiller(name = "log(New Cases)", palette = "Reds", direction = 1) +
+  theme_light() +
+  ggtitle("April 05, 2020")
+```
+
+```{r check-mobility-indicators-on-2020-04-20, include=FALSE}
+c19 %>% filter(date == "2020-04-20") %>% select(day, parks, residential) %>% summary()
+```
+
+```{r plot-04-20, include=FALSE, fig.cap="\\label{fig:plot-04-20}Prediction surface at various levels of the mobility indicators on April 20, 2020"}
+plot_04_20 <- ggplot(data = new.data %>% filter(day == 90, parks >= 0.36 & parks <= 1.6309, residential >= 1.116 & residential <= 1.260),
+       aes(x = parks,
+           y = residential)) +
+  geom_tile(aes(fill = log_new_cases)) + 
+  geom_contour(aes(z = log_new_cases), color = "white") +
+  #geom_text_contour(aes(z = incidence), stroke = 0.1, size = 3.5) +
+  geom_point(data = c19 %>% filter(day == 90, state != "New York" & 
+                                     state != "District of Columbia") %>% 
+               select(parks, residential)) +
+  geom_text(data = c19 %>% 
+              filter(day == 90,
+                     state == "Arkansas" |
+                       state == "Mississippi" |
+                       state == "Oklahoma" |
+                       state == "Idaho" |
+                       state == "New Jersey" |
+                       state == "Michigan" |
+                       state == "California") %>%
+              select(parks, residential, state), 
+            aes(label = state),
+            nudge_y = -0.01) +
+  scale_fill_distiller(name = "log(New Cases)", palette = "Reds", direction = 1) +
+  theme_light() +
+  ggtitle("April 20, 2020")
+```
+
+```{r interactive-plot, eval=FALSE,include=FALSE}
+plot_ly(data = c19 %>% filter(day == 90) %>% select(state, retail, parks), x = ~ parks, y = ~ retail, text = ~state)
+```
+
+```{r prediction-plots, fig.height=9, echo=FALSE, fig.cap="\\label{fig:prediction-plots}Prediction surfaces at three points during the pandemic according to the model; the dots are scatterplots of the park- and residential-mobility indicators of the states on that date."}
+grid.arrange(plot_03_21, plot_04_05, plot_04_20, nrow = 3)
+```
+
+The results suggest the potential of GCMR to investigate the spread of COVID-19, but also point at some limitations. The baseline level is not defined in a metric that is amenable to policy development (Google defines "mobility" as an aggregated score of visits and length of stay at places.) For example, it is not clear precisely what is residential mobility: is it visits with friends and relatives, or mobility in the vicinity of the place of residency? Without a clearer understanding of these variables, their use can suggest trends, but their potential for applied policy analysis appears to be more limited.
+
+
+References {#references .unnumbered}
+==========
