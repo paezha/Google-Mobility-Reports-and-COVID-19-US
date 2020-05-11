@@ -13,18 +13,19 @@ McMaster University
 1280 Main Street West, Hamilton, ON L8S 4K1  
 Canada
 
-(paper submitted to Transport Findings on May 3, 2020)
+(revised versin of paper after anonymous reviews submitted to Transport
+Findings on May 11, 2020)
 
 ## Abstract
 
 In 2020 Google released a set of Community Mobility Reports (GCMR).
 These reports are based on the company’s location-tracking capabilities
 and measure changes in mobility with respect to a baseline. This novel
-source of data offers an opportunity to investigate the way mobility
-potentially correlates with transmission of COVID-19. Using data from
-the New York Times on COVID-19 cases and GCMR, this paper presents an
-analysis of mobility levels and new daily reported cases of COVID-19 by
-state in the US. The results provide insights about the utility and
+source of data offers an opportunity to investigate potential
+correlations between mobility and transmission of COVID-19. Using data
+from the New York Times on COVID-19 cases and GCMR, this paper presents
+an analysis of mobility levels and new daily reported cases of COVID-19
+by state in the US. The results provide insights about the utility and
 interpretability of GCMR for COVID-19 research and decision-making.
 
 ## Keywords
@@ -39,14 +40,15 @@ interpretability of GCMR for COVID-19 research and decision-making.
 # Research Questions and Hypotheses
 
 The main policy tool to control the spread of the COVID-19 pandemic has
-been stay-at-home orders. Concurrently, numerous efforts exist to track
-the progress and the impact of the pandemic, and new sources of data
-include the recently-released Google Community Mobility Reports
-[GCMR](https://www.google.com/covid19/mobility/), as well as The New
-York Times repository of [COVID-19
-data](https://github.com/nytimes/covid-19-data). These two open data
-sets offer novel opportunities to investigate in quasi-real time the
-relationship between mobility patterns and transmission of COVID-19.
+been stay-at-home orders, which in the United States have been
+implemented on a state-by-state basis, with considerable variations in
+compliance. Concurrently, numerous initiatives have been developed to
+track the progress and the impact of the pandemic. As a result, there
+are new sources of data such as the recently-released Google Community
+Mobility Reports (GCMR), as well as The New York Times repository of
+COVID-19 data. These two open data sets offer novel opportunities to
+investigate in quasi-real time the relationship between mobility
+patterns and transmission of COVID-19.
 
 This paper investigates the potential of Google Community Mobility
 Reports to asses the impact of mobility on COVID-19. The following
@@ -57,34 +59,19 @@ questions are posed:
   - And if so, what do we learn about mobility and the spread of the
     disease?
 
-The source document for this paper is an `R` markdown document available
-from the following repository:
-
-<https://github.com/paezha/Google-Mobility-Reports-and-COVID-19-US/tree/fcd055878020bf567cd4deabb16c8056189eb45c/Covid-19-Google-CMR-US>
+This paper is a reproducible research document. The source is an `R`
+markdown file available in a public repository.
 
 # Methods and Data
 
 GCMR use aggregated and anonymized data to chart changes in mobility
-with respect to different classes of places, namely retail and
-recreation, groceries and pharmacies, parks, transit stations,
-workplaces, and residential. Mobility indicators for each of these
-places are reported as percentage changes from a baseline level, which
+with respect to different classes of places (see Table ). Mobility
+indicators are calculated based on the frequency and length of visits.
+The reports give percentage change from a baseline level, which
 corresponds to the median value of mobility of identical days of the
 week during the period between January 3 and Feb 6, 2020. Covid-19 data
 is compiled by The New York Times based on reports from state and local
 health agencies.
-
-For analysis, all mobility indicators are centered so that the value of
-1 is the base mobility, and a 0.01 deviation corresponds to a 1% change.
-The incubation time of the disease has been estimated to be between 2
-and 12 days (95% interval) by Lauer et al. (2020). Given this, it is to
-be expected that any changes in mobility will have a lagged effect on
-the discovery of new cases. For this reason, lagged moving averages of
-the mobility indicators are calculated. Furthermore, it is possible that
-mobility and reports of new cases of COVID-19 are endogenous, if the
-public adjust their mobility according to reports of the incidence.
-Therefore, in addition to being consistent with an incubation period,
-use of lagged indicators also helps to break this potential endogeneity.
 
 <table class="table" style="margin-left: auto; margin-right: auto;">
 
@@ -148,7 +135,7 @@ New Cases
 
 </td>
 
-<td style="text-align:left;">
+<td style="text-align:left;width: 12em; ">
 
 New Daily Cases of COVID-19
 
@@ -162,19 +149,19 @@ New Daily Cases of COVID-19
 
 <td style="text-align:left;">
 
-77.5
+90
 
 </td>
 
 <td style="text-align:left;">
 
-12126
+12312
 
 </td>
 
 <td style="text-align:left;">
 
-1059.81
+1051.67
 
 </td>
 
@@ -188,7 +175,7 @@ date
 
 </td>
 
-<td style="text-align:left;">
+<td style="text-align:left;width: 12em; ">
 
 Date
 
@@ -202,13 +189,13 @@ Date
 
 <td style="text-align:left;">
 
-2020-04-01
+2020-04-04
 
 </td>
 
 <td style="text-align:left;">
 
-2020-04-26
+2020-05-02
 
 </td>
 
@@ -226,9 +213,10 @@ retail
 
 </td>
 
-<td style="text-align:left;">
+<td style="text-align:left;width: 12em; ">
 
-Retail and Recreation
+Mobility trends for places like restaurants, cafes, shopping centers,
+theme parks, museums, libraries, and movie theaters
 
 </td>
 
@@ -252,7 +240,7 @@ Retail and Recreation
 
 <td style="text-align:left;">
 
-0.22
+0.21
 
 </td>
 
@@ -266,9 +254,10 @@ groceries
 
 </td>
 
-<td style="text-align:left;">
+<td style="text-align:left;width: 12em; ">
 
-Groceries and Pharmacies
+Mobility trends for places like grocery markets, food warehouses,
+farmers markets, specialty food shops, drug stores, and pharmacies
 
 </td>
 
@@ -280,7 +269,7 @@ Groceries and Pharmacies
 
 <td style="text-align:left;">
 
-0.95
+0.94
 
 </td>
 
@@ -306,9 +295,10 @@ parks
 
 </td>
 
-<td style="text-align:left;">
+<td style="text-align:left;width: 12em; ">
 
-Parks
+Mobility trends for places like local parks, national parks, public
+beaches, marinas, dog parks, plazas, and public gardens
 
 </td>
 
@@ -326,13 +316,13 @@ Parks
 
 <td style="text-align:left;">
 
-1.8
+2.1
 
 </td>
 
 <td style="text-align:left;">
 
-0.24
+0.26
 
 </td>
 
@@ -346,9 +336,10 @@ transit
 
 </td>
 
-<td style="text-align:left;">
+<td style="text-align:left;width: 12em; ">
 
-Transit Stations
+Mobility trends for places like public transport hubs such as subway,
+bus, and train stations
 
 </td>
 
@@ -360,7 +351,7 @@ Transit Stations
 
 <td style="text-align:left;">
 
-0.73
+0.72
 
 </td>
 
@@ -372,7 +363,7 @@ Transit Stations
 
 <td style="text-align:left;">
 
-0.24
+0.23
 
 </td>
 
@@ -386,9 +377,9 @@ work
 
 </td>
 
-<td style="text-align:left;">
+<td style="text-align:left;width: 12em; ">
 
-Workplaces
+Mobility trends for places of work
 
 </td>
 
@@ -400,7 +391,7 @@ Workplaces
 
 <td style="text-align:left;">
 
-0.65
+0.63
 
 </td>
 
@@ -426,9 +417,9 @@ residential
 
 </td>
 
-<td style="text-align:left;">
+<td style="text-align:left;width: 12em; ">
 
-Residential
+Mobility trends for places of residence
 
 </td>
 
@@ -486,31 +477,40 @@ Residential
 
 </table>
 
+For analysis, all mobility indicators are centered so that the value of
+1 is the base mobility, and a 0.01 deviation corresponds to a 1% change.
+The incubation time of the disease is between 2 and 12 days (95%
+interval; see Lauer et al. 2020). Given this, it is to be expected that
+any changes in mobility will have a lagged effect (if any) on the
+discovery of new cases. For this reason, lagged moving averages of the
+mobility indicators are calculated. Furthermore, it is possible that
+mobility and reports of new cases of COVID-19 are endogenous, if the
+public adjust their mobility according to reports of the incidence.
+Therefore, in addition to being consistent with an incubation period,
+use of lagged indicators also helps to break this potential endogeneity.
+
 The lagged indicators are calculated as the mean of the mobility
 indicator using the values from date-minus-12-days to date-minus-2-days.
 Furthermore, using the cumulative number of reported COVID-19 cases, the
 total number of new daily cases is calculated. This variable
-(log-transformed after adding a small constant) is paired to the
+(log-transformed after adding a small constant) is paired with the
 corresponding lagged moving average of the mobility indicators. The
 log-transformation is useful to avoid negative values of daily new cases
-when making predictions. Analysis is based on correlation analysis,
-multivariate regression, and data visualization. Table  shows the
-descriptive statistics of the data set. Temporal coverage is from
-February 27 to April 26, 2020. The maximum number of new daily cases
-during this period is 12,126.
+when making predictions. Table  shows the descriptive statistics of the
+data set. Analysis is based on correlation analysis, multivariate
+regression, and data visualization.
 
 # Findings
 
 Table  shows that the mobility indicators are highly correlated with
-each other. This is not surprising: it is well-known that mobility
-involves time-use trade-offs: the more there is of one kind of mobility,
-the less time there is available for any other. That said, the strongest
-correlation with the outcome of interest is for residential-based
-mobility. To avoid multicollinearity, parks-related mobility is selected
-as a covariate since it has the lowest correlation with
-residential-based mobility.
+each other. Two variables are selected for multivariate analysis: parks-
+and work-related mobility. Work has a high correlation with the outcome
+variable, and its correlation with parks is relatively weak, which
+increases the information content of the two variables. Furthermore,
+parks- and work-related mobility represent two dimensions of out-of-home
+activities: mandatory and discretionary travel.
 
-<table>
+<table class="table" style="margin-left: auto; margin-right: auto;">
 
 <caption>
 
@@ -596,13 +596,13 @@ log\_new\_cases
 
 <td style="text-align:right;">
 
-\-0.47
+\-0.48
 
 </td>
 
 <td style="text-align:right;">
 
-\-0.30
+\-0.27
 
 </td>
 
@@ -648,13 +648,13 @@ retail
 
 <td style="text-align:right;">
 
-0.86
+0.87
 
 </td>
 
 <td style="text-align:right;">
 
-0.44
+0.41
 
 </td>
 
@@ -688,13 +688,13 @@ groceries
 
 <td style="text-align:right;">
 
-\-0.47
+\-0.48
 
 </td>
 
 <td style="text-align:right;">
 
-0.86
+0.87
 
 </td>
 
@@ -706,7 +706,7 @@ groceries
 
 <td style="text-align:right;">
 
-0.46
+0.44
 
 </td>
 
@@ -724,7 +724,7 @@ groceries
 
 <td style="text-align:right;">
 
-\-0.86
+\-0.87
 
 </td>
 
@@ -740,19 +740,19 @@ parks
 
 <td style="text-align:right;">
 
-\-0.30
+\-0.27
+
+</td>
+
+<td style="text-align:right;">
+
+0.41
 
 </td>
 
 <td style="text-align:right;">
 
 0.44
-
-</td>
-
-<td style="text-align:right;">
-
-0.46
 
 </td>
 
@@ -764,19 +764,19 @@ parks
 
 <td style="text-align:right;">
 
-0.52
+0.49
 
 </td>
 
 <td style="text-align:right;">
 
-0.44
+0.39
 
 </td>
 
 <td style="text-align:right;">
 
-\-0.45
+\-0.41
 
 </td>
 
@@ -810,7 +810,7 @@ transit
 
 <td style="text-align:right;">
 
-0.52
+0.49
 
 </td>
 
@@ -822,7 +822,7 @@ transit
 
 <td style="text-align:right;">
 
-0.94
+0.93
 
 </td>
 
@@ -862,13 +862,13 @@ work
 
 <td style="text-align:right;">
 
-0.44
+0.39
 
 </td>
 
 <td style="text-align:right;">
 
-0.94
+0.93
 
 </td>
 
@@ -908,13 +908,13 @@ residential
 
 <td style="text-align:right;">
 
-\-0.86
+\-0.87
 
 </td>
 
 <td style="text-align:right;">
 
-\-0.45
+\-0.41
 
 </td>
 
@@ -966,39 +966,31 @@ residential
 
 </table>
 
-A regression model uses the log of new daily cases as the dependent
-variable. The covariates are parks- and residential-related mobility,
-which enter the regression in the form of a second order polynomial
-expansion. In addition, the date is introduced to account for the
-temporal trend of the pandemic. Finally, an indicator variable for the
-state of New York and an interaction with the date are used to
-distinguish the unusually high incidence of the disease there. The
-results appear in Table . The model provides a good fit to the data and
-all variables reported are significant at \(p<0.05\) or better.
+A regression model is estimated with the log of new daily cases as the
+dependent variable. The covariates enter the regression in the form of a
+second order polynomial expansion. In addition, the date (centered on
+April 5) is introduced to account for the temporal trend of the
+pandemic. Finally, an indicator variable for the state of New York and
+an interaction with the date are used to distinguish the unusually high
+incidence of the disease there. The results appear in Table . The model
+provides a good fit to the data and all variables reported are
+significant at \(p<0.05\) or better.
 
 There is an overall temporal trend that indicates a growing number of
-cases over time, but at a decreasing rate (see negative sign of date^2).
-New York has on average more new daily cases than the rest of the
-states, but this has also declined over time (see negative sign of NY x
-date). Visualization is the most effective way to understand the trend
-according to the mobility indicators and date. Figure  shows the
-prediction surfaces on three different dates: March 21, when the first
-states began implementing stay-at-home orders; April 5, fifteen days
-later; and April 20, fifteen more days later, and at a time when some
-states are considering relaxing stay-at-home orders. On March 21 there
-were still only minor departures from baseline mobility (recall that
-these are temporally lagged); the prediction surface at this point is
-relatively flat. This changes by April 5, when large increases in
-residential-based mobility are seen, along with greater variations in
-parks-based mobility. The prediction surface indicates an expectation of
-a greater number of new daily cases as both classes of mobility
-increase. On the last date examined, April 20, the trend becomes more
-steep for park-based mobility, even as this indicator continues to
-display large variations from the baseline in both directions. In
-general, higher levels of mobility tend to be associates with a higher
-number of new daily cases.
+cases over time, at an accelerating rate (see positive sign of date^2).
+Mobility related to parks and to work both tend to increase the number
+of new cases; the negative sign for their interaction is indicative of
+the trade-offs between these two forms of mobility and their impact on
+new cases. The influence of parks-related mobility was relatively weaker
+early in the pandemic (negative sign of the parks x date term) but has
+become more important over time (positive sign of the parks x date^2
+term). The opposite happens with work-related mobility, which started
+with a greater effect (positive sign of work x date term), but whose
+impact has declined over time (negative sign of work x date^2 term) New
+York has on average more new daily cases than the rest of the states,
+but this has declined over time (see negative sign of NY x date).
 
-<table>
+<table class="table" style="margin-left: auto; margin-right: auto;">
 
 <caption>
 
@@ -1045,13 +1037,13 @@ date
 
 <td style="text-align:center;">
 
-7.9619
+0.1085
 
 </td>
 
 <td style="text-align:center;">
 
-\<0.0001
+\<0.001
 
 </td>
 
@@ -1067,13 +1059,13 @@ date^2
 
 <td style="text-align:center;">
 
-\-0.0411
+0.0070
 
 </td>
 
 <td style="text-align:center;">
 
-\<0.0001
+\<0.001
 
 </td>
 
@@ -1089,13 +1081,13 @@ parks^2
 
 <td style="text-align:center;">
 
-1.4017
+2.1756
 
 </td>
 
 <td style="text-align:center;">
 
-0.0251
+\<0.001
 
 </td>
 
@@ -1111,13 +1103,13 @@ parks
 
 <td style="text-align:center;">
 
-\-37.2492
+8.9203
 
 </td>
 
 <td style="text-align:center;">
 
-\<0.0001
+\<0.001
 
 </td>
 
@@ -1127,19 +1119,19 @@ parks
 
 <td style="text-align:left;">
 
-parks x residential
+parks x work
 
 </td>
 
 <td style="text-align:center;">
 
-39.0902
+\-23.6010
 
 </td>
 
 <td style="text-align:center;">
 
-\<0.0001
+\<0.001
 
 </td>
 
@@ -1149,19 +1141,19 @@ parks x residential
 
 <td style="text-align:left;">
 
-residential
+work
 
 </td>
 
 <td style="text-align:center;">
 
-\-286.7568
+6.3156
 
 </td>
 
 <td style="text-align:center;">
 
-\<0.0001
+0.0035
 
 </td>
 
@@ -1171,19 +1163,19 @@ residential
 
 <td style="text-align:left;">
 
-residential^2
+work^2
 
 </td>
 
 <td style="text-align:center;">
 
-249.9901
+12.0539
 
 </td>
 
 <td style="text-align:center;">
 
-\<0.0001
+\<0.001
 
 </td>
 
@@ -1199,13 +1191,13 @@ parks x date
 
 <td style="text-align:center;">
 
-\-0.1412
+\-0.2133
 
 </td>
 
 <td style="text-align:center;">
 
-\<0.0001
+\<0.001
 
 </td>
 
@@ -1215,19 +1207,19 @@ parks x date
 
 <td style="text-align:left;">
 
-residential x date
+parks x date^2
 
 </td>
 
 <td style="text-align:center;">
 
-\-6.9180
+0.0079
 
 </td>
 
 <td style="text-align:center;">
 
-\<0.0001
+\<0.001
 
 </td>
 
@@ -1237,19 +1229,41 @@ residential x date
 
 <td style="text-align:left;">
 
-residential x date^2
+work x date
 
 </td>
 
 <td style="text-align:center;">
 
-0.0365
+0.1376
 
 </td>
 
 <td style="text-align:center;">
 
-\<0.0001
+0.0272
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+work x date^2
+
+</td>
+
+<td style="text-align:center;">
+
+\-0.0238
+
+</td>
+
+<td style="text-align:center;">
+
+\<0.001
 
 </td>
 
@@ -1265,13 +1279,13 @@ NY
 
 <td style="text-align:center;">
 
-6.9864
+3.5466
 
 </td>
 
 <td style="text-align:center;">
 
-\<0.0001
+\<0.001
 
 </td>
 
@@ -1287,13 +1301,13 @@ NY x date
 
 <td style="text-align:center;">
 
-\-0.0557
+\-0.0527
 
 </td>
 
 <td style="text-align:center;">
 
-0.0022
+\<0.001
 
 </td>
 
@@ -1317,7 +1331,7 @@ NY x date
 
 <td style="padding: 0; border: 0;" colspan="100%">
 
-<sup></sup> Coefficient of Determination \(R^2\)= 0.821
+<sup></sup> Coefficient of Determination \(R^2\)= 0.831
 
 </td>
 
@@ -1327,7 +1341,7 @@ NY x date
 
 <td style="padding: 0; border: 0;" colspan="100%">
 
-<sup></sup> Adjusted Coefficient of Determination \(R^2\)= 0.82
+<sup></sup> Adjusted Coefficient of Determination \(R^2\)= 0.83
 
 </td>
 
@@ -1337,7 +1351,7 @@ NY x date
 
 <td style="padding: 0; border: 0;" colspan="100%">
 
-<sup></sup> Standard Error \(\\sigma\)= 2.102
+<sup></sup> Standard Error \(\\sigma\)= 2.081
 
 </td>
 
@@ -1347,20 +1361,50 @@ NY x date
 
 </table>
 
-![Prediction surfaces at three points during the pandemic according to
-the model; the dots are scatterplots of the park- and
-residential-mobility indicators of the states on that
-date.](README_files/figure-gfm/prediction-plots-1.png)
+Visualization is the most effective way to understand the trend
+according to the mobility indicators and date. Figure  shows the
+prediction surfaces on three different dates: March 21, when the first
+states began implementing stay-at-home orders; April 5, fifteen days
+later; and April 20, fifteen more days later, and at a time when some
+states started to consider relaxing stay-at-home orders.
 
-The results suggest the potential of GCMR to investigate the spread of
+On March 21 there were still only minor departures from baseline
+mobility (recall that these are temporally lagged); the prediction
+surface at this point is relatively flat. This changes by April 5, when
+work-based mobility has declined substantially. Although every state
+registers lower work-based mobility, there are large variations in
+parks-based mobility, with some states seeing increases of up to 60% for
+this class of mobility.
+
+The prediction surface indicates an expectation of a greater number of
+new daily cases as either class of mobility increases, but the effect is
+not linear. On the last date examined, April 20, the trend becomes more
+steep for park-based mobility, even as this indicator continues to
+display large variations from the baseline in both directions. The white
+dashed lines in the plots are the folds of the saddles, and represent,
+for each date, the combination of parks- and work-related mobility
+levels that tended to minimize the emergence of new cases.
+
+![Prediction surfaces at three points during the pandemic according to
+the model; the dots are a scatterplot of the parks- and work-related
+mobility indicators of the states on that date; the white dashed line is
+the fold of the saddle.](README_files/figure-gfm/prediction-plots-1.png)
+
+The results suggest that over time the benefits of reduced work-related
+mobility can be offset by parks-related mobility. For example, on March
+21, New Jersey and Idaho had similar levels of park-related mobility. By
+April 20, New Jersey had substantially reduced park-related mobility,
+whereas Idaho’s was even higher than in March. The estimated and actual
+number of new cases grew in the intervening period; however, New
+Jersey’s growth in new cases (from March 21 to April 20) was only
+894%, whereas Idaho’s was 1030%.
+
+These results suggest the potential of GCMR to investigate the spread of
 COVID-19, but also point at some limitations. The baseline level is not
-defined in a metric that is amenable to policy development (Google
-defines “mobility” as an aggregated score of visits and length of stay
-at places.) For example, it is not clear precisely what is residential
-mobility: is it visits with friends and relatives, or mobility in the
-vicinity of the place of residency? Without a clearer understanding of
-these variables, their use can suggest trends, but their potential for
-applied policy analysis appears to be more limited.
+defined in a metric that is amenable to policy development (e.g.,
+person-km travelled). Without a clearer understanding of the absolute
+levels of these variables, their use can suggest trends, but their
+potential for applied policy analysis appears to be more limited.
 
 # References
 

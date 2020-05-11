@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (MiKTeX 2.9.7200 64-bit) (preloaded format=pdflatex 2019.10.22)  3 MAY 2020 20:10
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (MiKTeX 2.9.7200 64-bit) (preloaded format=pdflatex 2019.10.22)  11 MAY 2020 18:29
 entering extended mode
 **./Covid-19-Google-CMR-US.tex
 (Covid-19-Google-CMR-US.tex
@@ -806,16 +806,10 @@ LaTeX Font Info:    External font `lmex10' loaded for size
 LaTeX Font Info:    External font `lmex10' loaded for size
 (Font)              <7> on input line 109.
 LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 1
-32.
+35.
 ("C:\Program Files\MiKTeX 2.9\tex/latex/lm\ts1lmr.fd"
 File: ts1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
-)
-Overfull \hbox (232.31657pt too wide) in paragraph at lines 142--143
-[]\T1/lmr/m/n/10 (-20) https://github.com/paezha/Google-Mobility-Reports-and-CO
-VID-19-US/tree/fcd055878020bf567cd4deabb16c8056189eb45c/Covid-
- []
-
-[1
+) [1
 
 
 {C:/Users/paezha/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}] [2pdfTeX w
@@ -824,76 +818,77 @@ ready used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.208 \section{Findings}\label{findings}}
-                                         ] [3pdfTeX warning (ext4): destination
- with the same identifier (name{table.2}) has been already used, duplicate igno
-red
+l.194 
+      ] [3pdfTeX warning (ext4): destination with the same identifier (name{tab
+le.2}) has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.274 
-      ]
-<Covid-19-Google-CMR-US_files/figure-latex/prediction-plots-1.pdf, id=65, 469.7
+l.252 T
+       here is an overall temporal trend that indicates a growing number of] [4
+pdfTeX warning (ext4): destination with the same identifier (name{table.3}) has
+ been already used, duplicate ignored
+
+\AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
+                                                  \fi \fi 
+l.315 T
+       he prediction surface indicates an expectation of a greater number of]
+<Covid-19-Google-CMR-US_files/figure-latex/prediction-plots-1.pdf, id=75, 469.7
 55pt x 650.43pt>
 File: Covid-19-Google-CMR-US_files/figure-latex/prediction-plots-1.pdf Graphic 
 file (type pdf)
 <use Covid-19-Google-CMR-US_files/figure-latex/prediction-plots-1.pdf>
 Package pdftex.def Info: Covid-19-Google-CMR-US_files/figure-latex/prediction-p
-lots-1.pdf  used on input line 307.
+lots-1.pdf  used on input line 326.
 (pdftex.def)             Requested size: 345.0pt x 477.68813pt.
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 337.
-[4pdfTeX warning (ext4): destination with the same identifier (name{table.3}) h
-as been already used, duplicate ignored
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 362.
+[5] [6pdfTeX warning (ext4): destination with the same identifier (name{figure.
+1}) has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.337 \end{document}
-                    ] [5pdfTeX warning (ext4): destination with the same identi
-fier (name{figure.1}) has been already used, duplicate ignored
-
-\AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
-                                                  \fi \fi 
-l.337 \end{document}
+l.362 \end{document}
                      <./Covid-19-Google-CMR-US_files/figure-latex/prediction-pl
 ots-1.pdf>]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 337.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 362.
 (Covid-19-Google-CMR-US.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 337.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 337.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 362.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 362.
 Package rerunfilecheck Info: File `Covid-19-Google-CMR-US.out' has not changed.
 
 (rerunfilecheck)             Checksum: 96EBE1922905CAEB3E039B211BC80D6F;526.
 
 LaTeX Warning: There were multiply-defined labels.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 337.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 362.
  ) 
 Here is how much of TeX's memory you used:
- 14570 strings out of 492453
- 207402 string characters out of 3129816
- 328373 words of memory out of 3000000
- 18587 multiletter control sequences out of 15000+200000
- 60407 words of font info for 92 fonts, out of 3000000 for 9000
+ 14578 strings out of 492453
+ 207467 string characters out of 3129816
+ 329425 words of memory out of 3000000
+ 18588 multiletter control sequences out of 15000+200000
+ 60567 words of font info for 95 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
- 39i,10n,42p,345b,342s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 39i,12n,42p,397b,358s stack positions out of 5000i,500n,10000p,200000b,50000s
 {C:/Program Files/MiKTeX 2.9/fonts/enc/dvips/lm/lm-rm.enc}{C:/Program Files/M
 iKTeX 2.9/fonts/enc/dvips/lm/lm-mathit.enc}{C:/Program Files/MiKTeX 2.9/fonts/e
 nc/dvips/lm/lm-ec.enc}{C:/Program Files/MiKTeX 2.9/fonts/enc/dvips/lm/lm-mathsy
 .enc}{C:/Program Files/MiKTeX 2.9/fonts/enc/dvips/lm/lm-ts1.enc}<C:/Program Fil
 es/MiKTeX 2.9/fonts/type1/public/lm/lmbx10.pfb><C:/Program Files/MiKTeX 2.9/fon
 ts/type1/public/lm/lmmi10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/l
-m/lmr10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmr12.pfb><C:/Pr
-ogram Files/MiKTeX 2.9/fonts/type1/public/lm/lmr6.pfb><C:/Program Files/MiKTeX 
-2.9/fonts/type1/public/lm/lmr7.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/pub
-lic/lm/lmr8.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmri10.pfb><
-C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmri7.pfb><C:/Program Files/M
-iKTeX 2.9/fonts/type1/public/lm/lmri8.pfb><C:/Program Files/MiKTeX 2.9/fonts/ty
-pe1/public/lm/lmsy6.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmsy
-7.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmtt10.pfb><C:/Program
- Files/MiKTeX 2.9/fonts/type1/public/lm/lmtt8.pfb>
-Output written on Covid-19-Google-CMR-US.pdf (5 pages, 334252 bytes).
+m/lmmi7.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmr10.pfb><C:/Pr
+ogram Files/MiKTeX 2.9/fonts/type1/public/lm/lmr12.pfb><C:/Program Files/MiKTeX
+ 2.9/fonts/type1/public/lm/lmr5.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/pu
+blic/lm/lmr6.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmr7.pfb><C
+:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmr8.pfb><C:/Program Files/MiK
+TeX 2.9/fonts/type1/public/lm/lmri7.pfb><C:/Program Files/MiKTeX 2.9/fonts/type
+1/public/lm/lmri8.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmsy6.
+pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmsy7.pfb><C:/Program Fi
+les/MiKTeX 2.9/fonts/type1/public/lm/lmtt10.pfb><C:/Program Files/MiKTeX 2.9/fo
+nts/type1/public/lm/lmtt8.pfb>
+Output written on Covid-19-Google-CMR-US.pdf (6 pages, 465565 bytes).
 PDF statistics:
- 145 PDF objects out of 1000 (max. 8388607)
- 24 named destinations out of 1000 (max. 500000)
- 17958 words of extra memory for PDF output out of 20736 (max. 10000000)
+ 157 PDF objects out of 1000 (max. 8388607)
+ 26 named destinations out of 1000 (max. 500000)
+ 16422 words of extra memory for PDF output out of 17280 (max. 10000000)
 

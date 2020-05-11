@@ -1,0 +1,48 @@
+---
+title: "Response to Reviewers"
+author: "Antonio Paez"
+date: "5/11/2020"
+output: pdf_document
+---
+
+I would like to thank two anonymous reviewers for their comments and suggestions for revisions. In this letter I respond to those comments and explain how the paper was revised in response.
+
+\newpage
+
+# Reviewer 1
+
+This is a well-written and timely paper. I only have some comments regarding the interpretation. So Table 3 indicates that park-related mobility (I assume this refers to walking and cycling in a park? this could be specified) results in a new/more cases of Covid 19, while residential mobility (mobility in own neighborhood?) results in a lower amount of Covid 19 cases? I think this could be stated somewhat more clear/ easier to understand in the paper.
+
+>*Thank you for your positive assessment of the paper, and comments for improving it. The parks mobility index refers to mobility trends for places like local parks, national parks, public beaches, marinas, dog parks, plazas, and public gardens. Following a recommendation from Reviewer 2 I have replaced "residential mobility" with "work-related mobility", which is easier to interpret. Hopefully in the revision the results are more clearly stated.*
+
+I would also suggest adding a sentence (before of after table 3) like: ‘These results indicate that traveling outside the residential neighborhood increases the chance of getting infected by COVID-19, and therefore aligns with existing social distancing rules’ (or a similar sentence refering to policy implication)
+
+>*Thank you. I added a sentence regarding the policy implications of the analysis.*
+
+
+\newpage
+
+# Reviewer 2
+
+The question the paper deals with is timely and interesting. However, there are a number of issues. First, the intent of the stay-at-home orders is to reduce transmission from what it would have been otherwise. Cases are going up regradless, but if the policy works, there would be fewer cases. Without a counterfactual of what the number of infections would have been, it is impossible to find meaning from the model. It is the reductions that should be a response variable to mobility changes.
+
+>*That is correct. In lieu of a counterfactual, what we have is differences in compliance with the policy in different states, which are reflected statistically in different rates in the growth of cases. See for example the table below. On March 21, New Jersey had similary mobility with respect to parks and work as Idaho. However, these two states had a different starting point for the trajectory of the pandemic - which is reflected in the number of new cases on that date (both actual and estimated by the model). By April 20, New Jersey had substantially reduced park-related mobility, whereas Idaho's was even higher. The estimated and actual number of new cases grew in the intervening period; however, New Jersey's growth in new cases (from March 21 to April 20) was only 894%, whereas Idaho's was 1030%.* 
+
+State | Date | Parks | Work | Estimated New Cases | Actual New Cases |
+-| - | - | - | - | - |
+New Jersey | March 21 | 1.45 | 0.845 | 441.42 | 440 |
+New Jersey | April 20 | 0.728 | 0.413 | 3498.19 | 4377 |
+Idaho | March 21 | 1.48 | 0.939 | 23.10 | 23
+Idaho | April 20 | 1.63 | 0.588 | 259.82 | 260
+
+Second, the chosen mobility indicators (parks and residence) both increased from baseline in the period of analysis for most states (median > 1 for both variables). Neither captures the policy intent. Third, the residence mobility variable is not well defined as the author indicates in their conclusion. Other variables such as work, transit better capture the policy intent and are better defined.
+
+>*I am grateful for these comments, which made me rethink the selection of variables. Here, it is important to make a distinction between the _intent_ of the policy, and _compliance_ with the policy. While the policy's intent has been to reduce out-of-home activities to limit the contact rate for the virus, compliance has been haphazard, with some states (such as New Jersey in the example above) recording sharper declines in mobility, and others (such as Idaho) where compliance has been more lax.* 
+
+>*The above said, I was encouraged by this comment to replace residential mobility (which I struggled with the interpretation of in any case) and use instead work-related mobility, while retaining park-related mobility. Why these two variables? First, as seen in Table 2, the correlations between the variables are very high, which means that after choosing any one, a second mobility index does not bring a lot of new information. The exception is parks, the only variable with R < 0.8 with any of the other mobility indicators. So partly, I chose to keep parks in the analysis for statistical reasons. Secondly, work and parks capture two dimensions of mobility, mandatory and discretionary travel, so conceptually they make sense too. And finally, these two mobility indicators are better defined than residential-based mobility.*
+
+>*The results indicate that the number of new cases generally increases as a function of mobility, but the effect is not linear, given the interactions between work-related and parks-related mobility.*
+
+Finally, even though the author states that “higher levels of mobility tend to be associated with higher number of cases”, that is not what the estimated parameters show within their range in the data for both residence and parks. For example, taking the quadratic function for residences, within the range of 0.34-1.16, infections decline as mobility increases - the opposite of what the policy is supposed to do. It seems that the declines in the included figures are driven by the date variable and interactions with it.
+
+>*There is indeed a strong temporal trend, which is captured by the date and interaction of date with the mobility indicators. The coefficients of the model indicate that the number of new cases increases with park-related mobility, and also increases with work related mobility. The interaction term is negative, which captures the trade-off between these two forms of mobility. As seen in the figures, the trend is stronger in the dimension of parks-related mobility: as trade-offs go, gains due to lower work-related mobility can be more than offset by parks-related mobility.*
