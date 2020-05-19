@@ -74,6 +74,410 @@ week during the period between January 3 and Feb 6, 2020. Covid-19 data
 is compiled by The New York Times based on reports from state and local
 health agencies.
 
+<table class="table" style="margin-left: auto; margin-right: auto;">
+
+<caption>
+
+Descriptive statistics of the data set
+
+</caption>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+Variable
+
+</th>
+
+<th style="text-align:left;">
+
+Definition
+
+</th>
+
+<th style="text-align:left;">
+
+min
+
+</th>
+
+<th style="text-align:left;">
+
+median
+
+</th>
+
+<th style="text-align:left;">
+
+max
+
+</th>
+
+<th style="text-align:left;">
+
+sd
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+Incidence
+
+</td>
+
+<td style="text-align:left;width: 12em; ">
+
+Total cases of COVID-19 divided by population (in 100,000s)
+
+</td>
+
+<td style="text-align:left;">
+
+0.01
+
+</td>
+
+<td style="text-align:left;">
+
+43.09
+
+</td>
+
+<td style="text-align:left;">
+
+1607.08
+
+</td>
+
+<td style="text-align:left;">
+
+195.46
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+date
+
+</td>
+
+<td style="text-align:left;width: 12em; ">
+
+Date
+
+</td>
+
+<td style="text-align:left;">
+
+2020-02-27
+
+</td>
+
+<td style="text-align:left;">
+
+2020-04-05
+
+</td>
+
+<td style="text-align:left;">
+
+2020-05-02
+
+</td>
+
+<td style="text-align:left;">
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+retail
+
+</td>
+
+<td style="text-align:left;width: 12em; ">
+
+Mobility trends for places like restaurants, cafes, shopping centers,
+theme parks, museums, libraries, and movie theaters
+
+</td>
+
+<td style="text-align:left;">
+
+0.34
+
+</td>
+
+<td style="text-align:left;">
+
+0.65
+
+</td>
+
+<td style="text-align:left;">
+
+1.16
+
+</td>
+
+<td style="text-align:left;">
+
+0.2
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+groceries
+
+</td>
+
+<td style="text-align:left;width: 12em; ">
+
+Mobility trends for places like grocery markets, food warehouses,
+farmers markets, specialty food shops, drug stores, and pharmacies
+
+</td>
+
+<td style="text-align:left;">
+
+0.66
+
+</td>
+
+<td style="text-align:left;">
+
+0.93
+
+</td>
+
+<td style="text-align:left;">
+
+1.26
+
+</td>
+
+<td style="text-align:left;">
+
+0.13
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+parks
+
+</td>
+
+<td style="text-align:left;width: 12em; ">
+
+Mobility trends for places like local parks, national parks, public
+beaches, marinas, dog parks, plazas, and public gardens
+
+</td>
+
+<td style="text-align:left;">
+
+0.36
+
+</td>
+
+<td style="text-align:left;">
+
+1.15
+
+</td>
+
+<td style="text-align:left;">
+
+2.1
+
+</td>
+
+<td style="text-align:left;">
+
+0.26
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+transit
+
+</td>
+
+<td style="text-align:left;width: 12em; ">
+
+Mobility trends for places like public transport hubs such as subway,
+bus, and train stations
+
+</td>
+
+<td style="text-align:left;">
+
+0.24
+
+</td>
+
+<td style="text-align:left;">
+
+0.7
+
+</td>
+
+<td style="text-align:left;">
+
+1.14
+
+</td>
+
+<td style="text-align:left;">
+
+0.23
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+work
+
+</td>
+
+<td style="text-align:left;width: 12em; ">
+
+Mobility trends for places of work
+
+</td>
+
+<td style="text-align:left;">
+
+0.34
+
+</td>
+
+<td style="text-align:left;">
+
+0.63
+
+</td>
+
+<td style="text-align:left;">
+
+1.05
+
+</td>
+
+<td style="text-align:left;">
+
+0.19
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+residential
+
+</td>
+
+<td style="text-align:left;width: 12em; ">
+
+Mobility trends for places of residence
+
+</td>
+
+<td style="text-align:left;">
+
+0.98
+
+</td>
+
+<td style="text-align:left;">
+
+1.14
+
+</td>
+
+<td style="text-align:left;">
+
+1.27
+
+</td>
+
+<td style="text-align:left;">
+
+0.07
+
+</td>
+
+</tr>
+
+</tbody>
+
+<tfoot>
+
+<tr>
+
+<td style="padding: 0; border: 0;" colspan="100%">
+
+<span style="font-style: italic;">Note: </span>
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="padding: 0; border: 0;" colspan="100%">
+
+<sup></sup> All mobility indicators are lagged 11-day moving averages
+
+</td>
+
+</tr>
+
+</tfoot>
+
+</table>
+
 For analysis, all mobility indicators are centered so that the value of
 1 is the baseline mobility, and a 0.01 deviation corresponds to a 1%
 change. The incubation time of the disease is between 2 and 12 days (95%
@@ -108,6 +512,462 @@ analysis. Furthermore, parks- and work-related mobility represent two
 dimensions of out-of-home activities: mandatory and discretionary
 travel.
 
+<table class="table" style="margin-left: auto; margin-right: auto;">
+
+<caption>
+
+Simple correlation between log(incidence) and the mobility indicators
+
+</caption>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+</th>
+
+<th style="text-align:right;">
+
+log\_incidence
+
+</th>
+
+<th style="text-align:right;">
+
+retail
+
+</th>
+
+<th style="text-align:right;">
+
+groceries
+
+</th>
+
+<th style="text-align:right;">
+
+parks
+
+</th>
+
+<th style="text-align:right;">
+
+transit
+
+</th>
+
+<th style="text-align:right;">
+
+work
+
+</th>
+
+<th style="text-align:right;">
+
+residential
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+log\_incidence
+
+</td>
+
+<td style="text-align:right;">
+
+1.00
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.90
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.76
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.32
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.85
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.92
+
+</td>
+
+<td style="text-align:right;">
+
+0.92
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+retail
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.90
+
+</td>
+
+<td style="text-align:right;">
+
+1.00
+
+</td>
+
+<td style="text-align:right;">
+
+0.87
+
+</td>
+
+<td style="text-align:right;">
+
+0.41
+
+</td>
+
+<td style="text-align:right;">
+
+0.92
+
+</td>
+
+<td style="text-align:right;">
+
+0.97
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.98
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+groceries
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.76
+
+</td>
+
+<td style="text-align:right;">
+
+0.87
+
+</td>
+
+<td style="text-align:right;">
+
+1.00
+
+</td>
+
+<td style="text-align:right;">
+
+0.43
+
+</td>
+
+<td style="text-align:right;">
+
+0.88
+
+</td>
+
+<td style="text-align:right;">
+
+0.88
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.88
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+parks
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.32
+
+</td>
+
+<td style="text-align:right;">
+
+0.41
+
+</td>
+
+<td style="text-align:right;">
+
+0.43
+
+</td>
+
+<td style="text-align:right;">
+
+1.00
+
+</td>
+
+<td style="text-align:right;">
+
+0.50
+
+</td>
+
+<td style="text-align:right;">
+
+0.39
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.41
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+transit
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.85
+
+</td>
+
+<td style="text-align:right;">
+
+0.92
+
+</td>
+
+<td style="text-align:right;">
+
+0.88
+
+</td>
+
+<td style="text-align:right;">
+
+0.50
+
+</td>
+
+<td style="text-align:right;">
+
+1.00
+
+</td>
+
+<td style="text-align:right;">
+
+0.93
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.94
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+work
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.92
+
+</td>
+
+<td style="text-align:right;">
+
+0.97
+
+</td>
+
+<td style="text-align:right;">
+
+0.88
+
+</td>
+
+<td style="text-align:right;">
+
+0.39
+
+</td>
+
+<td style="text-align:right;">
+
+0.93
+
+</td>
+
+<td style="text-align:right;">
+
+1.00
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.99
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+residential
+
+</td>
+
+<td style="text-align:right;">
+
+0.92
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.98
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.88
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.41
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.94
+
+</td>
+
+<td style="text-align:right;">
+
+\-0.99
+
+</td>
+
+<td style="text-align:right;">
+
+1.00
+
+</td>
+
+</tr>
+
+</tbody>
+
+<tfoot>
+
+<tr>
+
+<td style="padding: 0; border: 0;" colspan="100%">
+
+<span style="font-style: italic;">Note: </span>
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="padding: 0; border: 0;" colspan="100%">
+
+<sup></sup> All mobility indicators are lagged 11-day moving averages
+
+</td>
+
+</tr>
+
+</tfoot>
+
+</table>
+
 A regression model is estimated with the log of incidence as the
 dependent variable. The covariates enter the regression in the form of a
 second order polynomial expansion. In addition, the date (centered on
@@ -135,6 +995,333 @@ declined over time (negative sign of work x date^2 term), but whose
 impact has declined over time (negative sign of work x date^2 term). As
 seen in the table, incidence of COVID-19 in New York is consistently
 higher.
+
+<table class="table" style="margin-left: auto; margin-right: auto;">
+
+<caption>
+
+Results of estimating regression model. Dependent variable is
+log(Incidence).
+
+</caption>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+Variable
+
+</th>
+
+<th style="text-align:center;">
+
+Coefficient Estimate
+
+</th>
+
+<th style="text-align:center;">
+
+p-value
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+date
+
+</td>
+
+<td style="text-align:center;">
+
+0.1720
+
+</td>
+
+<td style="text-align:center;">
+
+\<0.001
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+date^2
+
+</td>
+
+<td style="text-align:center;">
+
+\-0.0004
+
+</td>
+
+<td style="text-align:center;">
+
+0.4146
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+parks^2
+
+</td>
+
+<td style="text-align:center;">
+
+0.3303
+
+</td>
+
+<td style="text-align:center;">
+
+0.0482
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+parks
+
+</td>
+
+<td style="text-align:center;">
+
+5.6365
+
+</td>
+
+<td style="text-align:center;">
+
+\<0.001
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+parks x work
+
+</td>
+
+<td style="text-align:center;">
+
+\-11.0572
+
+</td>
+
+<td style="text-align:center;">
+
+\<0.001
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+work
+
+</td>
+
+<td style="text-align:center;">
+
+7.7071
+
+</td>
+
+<td style="text-align:center;">
+
+\<0.001
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+work^2
+
+</td>
+
+<td style="text-align:center;">
+
+\-0.1530
+
+</td>
+
+<td style="text-align:center;">
+
+0.8333
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+parks x date
+
+</td>
+
+<td style="text-align:center;">
+
+\-0.1147
+
+</td>
+
+<td style="text-align:center;">
+
+\<0.001
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+parks x date^2
+
+</td>
+
+<td style="text-align:center;">
+
+0.0051
+
+</td>
+
+<td style="text-align:center;">
+
+\<0.001
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+work x date^2
+
+</td>
+
+<td style="text-align:center;">
+
+\-0.0085
+
+</td>
+
+<td style="text-align:center;">
+
+\<0.001
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+NY
+
+</td>
+
+<td style="text-align:center;">
+
+1.8810
+
+</td>
+
+<td style="text-align:center;">
+
+\<0.001
+
+</td>
+
+</tr>
+
+</tbody>
+
+<tfoot>
+
+<tr>
+
+<td style="padding: 0; border: 0;" colspan="100%">
+
+<span style="font-style: italic;">Note: </span>
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="padding: 0; border: 0;" colspan="100%">
+
+<sup></sup> Coefficient of Determination \(R^2\)= 0.969
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="padding: 0; border: 0;" colspan="100%">
+
+<sup></sup> Adjusted Coefficient of Determination \(R^2\)= 0.969
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="padding: 0; border: 0;" colspan="100%">
+
+<sup></sup> Standard Error \(\\sigma\)= 0.68
+
+</td>
+
+</tr>
+
+</tfoot>
+
+</table>
 
 Visualization is the most effective way to understand the trend
 according to the mobility indicators and date. Figure  shows the

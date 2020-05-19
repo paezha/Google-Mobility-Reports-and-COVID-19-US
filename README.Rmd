@@ -429,10 +429,11 @@ data.frame(Variable = c("Incidence",
                   as.character(round(sd(c19$transit), 2)),
                   as.character(round(sd(c19$work), 2)),
                   as.character(round(sd(c19$residential), 2)))) %>%
-  kable("latex",
+  kable(#"latex",
+        "html",
         booktabs = TRUE,
         caption = "\\label{tab:descriptive-statistics}Descriptive statistics of the data set") %>%
-  kable_styling(latex_options = c("striped", "scale_down", "HOLD_position"), font_size = 7) %>%
+  kable_styling(latex_options = c("striped", "scale_down", "HOLD_position")) %>%
   column_spec(2, width = "12em") %>%
   footnote(general = "All mobility indicators are lagged 11-day moving averages")
 ```
@@ -455,7 +456,7 @@ c19 %>%
         booktabs = TRUE,
         digits = 2,
         caption = "\\label{tab:correlation-analysis}Simple correlation between log(New Cases) and the mobility indicators")  %>%
-  kable_styling(latex_options = c("striped", "scale_down", "HOLD_position"), font_size = 7) %>%
+  kable_styling(latex_options = c("striped", "scale_down", "HOLD_position")) %>%
   footnote(general = "All mobility indicators are lagged 11-day moving averages")
 ```
 
@@ -464,11 +465,12 @@ c19 %>%
 c19 %>% 
   select(log_incidence, retail, groceries, parks, transit, work, residential) %>%
   cor(use = "pairwise.complete.obs") %>%
-  kable("latex",
+  kable(#"latex",
+        "html",
         booktabs = TRUE,
         digits = 2,
         caption = "\\label{tab:correlation-analysis-log-incidence}Simple correlation between log(incidence) and the mobility indicators")  %>%
-  kable_styling(latex_options = c("striped", "scale_down"), font_size = 7) %>%
+  kable_styling(latex_options = c("striped", "scale_down")) %>%
   footnote(general = "All mobility indicators are lagged 11-day moving averages")
 ```
 
@@ -533,13 +535,14 @@ data.frame(Variable = c("date",
            Coefficient = as.numeric(coefficients(mod1)),
            pval = as.numeric(summary(mod1)$coefficients[,4])) %>%
   mutate(pval = ifelse(pval >= 0.001, round(pval, 4), "<0.001")) %>%
-  kable("latex",
+  kable(#"latex",
+        "html",
         booktabs = TRUE,
         digits = 4,
         caption = "\\label{tab:model-results}Results of estimating regression model. Dependent variable is log(New Cases + 0.0001).",
         align = c("l", "c", "c"),
         col.names = c("Variable", "Coefficient Estimate", "p-value")) %>%
-  kable_styling(latex_options = c("striped", "HOLD_position"), font_size = 7) %>%
+  kable_styling(latex_options = c("striped", "HOLD_position")) %>%
   footnote(general = c(paste("Coefficient of Determination $R^2$=", round(summary(mod1)$r.squared, 3)),
                        paste("Adjusted Coefficient of Determination $R^2$=", round(summary(mod1)$adj.r.squared, 3)),
                        paste("Standard Error $\\\\sigma$=", round(summary(mod1)$sigma, 3))),
@@ -561,13 +564,14 @@ data.frame(Variable = c("date",
            Coefficient = as.numeric(coefficients(mod1)),
            pval = as.numeric(summary(mod1)$coefficients[,4])) %>%
   mutate(pval = ifelse(pval >= 0.001, round(pval, 4), "<0.001")) %>%
-  kable("latex",
+  kable(#"latex",
+        "html",
         booktabs = TRUE,
         digits = 4,
         caption = "\\label{tab:model-results}Results of estimating regression model. Dependent variable is log(Incidence).",
         align = c("l", "c", "c"),
         col.names = c("Variable", "Coefficient Estimate", "p-value")) %>%
-  kable_styling(latex_options = c("striped", "HOLD_position"), font_size = 7) %>%
+  kable_styling(latex_options = c("striped", "HOLD_position")) %>%
   footnote(general = c(paste("Coefficient of Determination $R^2$=", round(summary(mod1)$r.squared, 3)),
                        paste("Adjusted Coefficient of Determination $R^2$=", round(summary(mod1)$adj.r.squared, 3)),
                        paste("Standard Error $\\\\sigma$=", round(summary(mod1)$sigma, 3))),
