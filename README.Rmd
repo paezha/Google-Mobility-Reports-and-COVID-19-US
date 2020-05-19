@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# Using Google Community Mobility Reports to investigate the growth of COVID-19 in the United States
+# Using Google Community Mobility Reports to investigate the incidence of COVID-19 in the United States
 
 <!-- badges: start -->
 <!-- badges: end -->
@@ -24,11 +24,11 @@ McMaster University
 1280 Main Street West, Hamilton, ON L8S 4K1  
 Canada  
 
-(revised version of paper after anonymous reviews; resubmitted to Transport Findings on May 11, 2020)
+(third version of paper after second round of anonymous reviews; resubmitted to Transport Findings on May 19, 2020)
 
 ## Abstract
 
-In 2020 Google released a set of Community Mobility Reports (GCMR). These reports are based on the company's location-tracking capabilities and measure changes in mobility with respect to a baseline. This novel source of data offers an opportunity to investigate potential correlations between mobility and transmission of COVID-19. Using data from the New York Times on COVID-19 cases and GCMR, this paper presents an analysis of mobility levels and new daily reported cases of COVID-19 by state in the US. The results provide insights about the utility and interpretability of GCMR for COVID-19 research and decision-making.
+In 2020 Google released a set of Community Mobility Reports (GCMR). These reports are based on the company's location-tracking capabilities and measure changes in mobility with respect to a baseline. This novel source of data offers an opportunity to investigate potential correlations between mobility and incidence of COVID-19. Using data from the New York Times on COVID-19 cases and GCMR, this paper presents an analysis of mobility levels and incidence of COVID-19 by state in the US. The results provide insights about the utility and interpretability of GCMR for COVID-19 research and decision-making.
 
 ## Keywords
 
@@ -87,13 +87,13 @@ gmobility <- gmobility %>%
   #rename the annoyingly long names of the columns to something more practical
   transmute(date,
             state = as.character(sub_region_1),
-         county = as.character(sub_region_2),
-         r_and_r = retail_and_recreation_percent_change_from_baseline, 
-         g_and_p = grocery_and_pharmacy_percent_change_from_baseline, 
-         parks = parks_percent_change_from_baseline,
-         transit = transit_stations_percent_change_from_baseline, 
-         work = workplaces_percent_change_from_baseline,
-         residential = residential_percent_change_from_baseline) %>%
+            county = as.character(sub_region_2),
+            r_and_r = retail_and_recreation_percent_change_from_baseline, 
+            g_and_p = grocery_and_pharmacy_percent_change_from_baseline, 
+            parks = parks_percent_change_from_baseline,
+            transit = transit_stations_percent_change_from_baseline, 
+            work = workplaces_percent_change_from_baseline,
+            residential = residential_percent_change_from_baseline) %>%
   #convert the mobility indicators to differences from the baseline, so "1" is the baseline value
   mutate(r_and_r = 1 + r_and_r/100,
          g_and_p = 1 + g_and_p/100,
@@ -114,8 +114,8 @@ cmr <- gmobility %>%
 # Run only to read more recent data
 #retrieve data
 c19 <- read.csv(file.path("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv"),
-                 check.names = FALSE, 
-                 stringsAsFactors = TRUE) %>%
+                check.names = FALSE, 
+                stringsAsFactors = TRUE) %>%
   mutate(date = ymd(date))
 
 #Save as RData to keep a local copy of the reports:
@@ -146,12 +146,14 @@ c19 <- c19 %>%
 ```
 
 ```{r calculate-new-daily-cases, include=FALSE}
-#o calculate the number of new daily cases by state, we need to lag the Cases variable and substract the previous total:
+#To calculate the number of new daily cases by state, we need to lag the Cases variable and substract the previous total. Also calculate the daily percent change in new cases (pct_change), and the percent increase in total cases (pct_increase):
 c19 <- c19 %>%
   group_by(state) %>%
-  mutate(new_cases = cases - lag(cases, 1)) %>%
+  mutate(new_cases = cases - lag(cases, 1),
+         pct_change = (new_cases - lag(new_cases, 1))/lag(new_cases, 1),
+         pct_increase = (cases - lag(cases, 1))/lag(cases, 1)) %>%
   ungroup() %>%
-  #there is one record with a negative number of new cases, likely a correction (Georgia in 2020-04-12). Remove record:
+  #there are two record with negative numbers of new cases, likely corrections (Georgia in 2020-04-12, Idaho in 2020-05-03). Remove record:
   filter(new_cases >= 0)
 ```
 
@@ -364,11 +366,11 @@ c19 <- c19 %>%
 Research Questions and Hypotheses
 ==========================
 
-The main policy tool to control the spread of the COVID-19 pandemic has been stay-at-home orders, which in the United States have been implemented on a state-by-state basis, with considerable variations in compliance. Concurrently, numerous initiatives have been developed to track the progress and the impact of the pandemic. As a result, there are new sources of data such as the recently-released Google Community Mobility Reports (GCMR)\footnote{https://www.google.com/covid19/mobility/}, as well as The New York Times repository of COVID-19 data\footnote{https://github.com/nytimes/covid-19-data}. These two open data sets offer novel opportunities to investigate in quasi-real time the relationship between mobility patterns and transmission of COVID-19.
+The main policy tool to control the spread of the COVID-19 pandemic has been restrictions to non-essential travel in the form of stay-at-home orders. In the United States, such orders have been implemented on a state-by-state basis with considerable variations in compliance. Concurrently, numerous initiatives have been developed to track the progress and the impact of the pandemic. As a result, there are new sources of data such as the recently-released Google Community Mobility Reports (GCMR)\footnote{https://www.google.com/covid19/mobility/}, as well as The New York Times repository of COVID-19 data\footnote{https://github.com/nytimes/covid-19-data}. These two open data sets offer novel opportunities to investigate in quasi-real time the relationship between mobility patterns and transmission of COVID-19.
 
-This paper investigates the potential of Google Community Mobility Reports to asses the impact of mobility on COVID-19. The following questions are posed:
+This paper investigates the potential of Google Community Mobility Reports to asses the impact of mobility on the incidence of COVID-19. The following questions are posed:
 
-- Do changes in mobility according to GCMR correlate with the transmission of COVID-19?
+- Do changes in mobility according to GCMR correlate with the incidence of COVID-19?
 - And if so, what do we learn about mobility and the spread of the disease?
 
 This paper is a reproducible research document. The source is an `R` markdown file available in a public repository\footnote{See folder Covid-19-Google-CMR-US in \url{https://github.com/paezha/Google-Mobility-Reports-and-COVID-19-US/}}.
@@ -376,10 +378,10 @@ This paper is a reproducible research document. The source is an `R` markdown fi
 Methods and Data
 ============
 
-GCMR use aggregated and anonymized data to chart changes in mobility with respect to different classes of places (see Table \ref{tab:descriptive-statistics}). Mobility indicators are calculated based on the frequency and length of visits. The reports give percentage change from a baseline level, which corresponds to the median value of mobility of identical days of the week during the period between January 3 and Feb 6, 2020. Covid-19 data is compiled by The New York Times based on reports from state and local health agencies.
+GCMR use aggregated and anonymized data to chart changes in mobility with respect to different classes of places (see Table \ref{tab:descriptive-statistics}). Mobility indicators are calculated based on the frequency and length of visits to places. The reports give percentage change from a baseline level, which corresponds to the median value of mobility of identical days of the week during the period between January 3 and Feb 6, 2020. Covid-19 data is compiled by The New York Times based on reports from state and local health agencies.
 
 ```{r descriptive-statistics, echo=FALSE}
-data.frame(Variable = c("New Cases",
+data.frame(Variable = c("Incidence",
                         "date",
                         "retail",
                         "groceries",
@@ -387,15 +389,15 @@ data.frame(Variable = c("New Cases",
                         "transit",
                         "work",
                         "residential"),
-           Definition = c("New Daily Cases of COVID-19",
-                        "Date",
-                        "Mobility trends for places like restaurants, cafes, shopping centers, theme parks, museums, libraries, and movie theaters",
-                        "Mobility trends for places like grocery markets, food warehouses, farmers markets, specialty food shops, drug stores, and pharmacies",
-                        "Mobility trends for places like local parks, national parks, public beaches, marinas, dog parks, plazas, and public gardens",
-                        "Mobility trends for places like public transport hubs such as subway, bus, and train stations",
-                        "Mobility trends for places of work",
-                        "Mobility trends for places of residence"),
-           min = c(as.character(min(c19$new_cases)),
+           Definition = c("Total cases of COVID-19 divided by population (in 100,000s)",
+                          "Date",
+                          "Mobility trends for places like restaurants, cafes, shopping centers, theme parks, museums, libraries, and movie theaters",
+                          "Mobility trends for places like grocery markets, food warehouses, farmers markets, specialty food shops, drug stores, and pharmacies",
+                          "Mobility trends for places like local parks, national parks, public beaches, marinas, dog parks, plazas, and public gardens",
+                          "Mobility trends for places like public transport hubs such as subway, bus, and train stations",
+                          "Mobility trends for places of work",
+                          "Mobility trends for places of residence"),
+           min = c(as.character(round(min(c19$incidence), 2)),
                    as.character(min(c19$date)),
                    as.character(round(min(c19$retail), 2)),
                    as.character(round(min(c19$groceries), 2)),
@@ -403,15 +405,15 @@ data.frame(Variable = c("New Cases",
                    as.character(round(min(c19$transit), 2)),
                    as.character(round(min(c19$work), 2)),
                    as.character(round(min(c19$residential), 2))),
-           median = c(as.character(median(c19$new_cases)),
-                   as.character(median(c19$date)),
-                   as.character(round(median(c19$retail), 2)),
-                   as.character(round(median(c19$groceries), 2)),
-                   as.character(round(median(c19$parks), 2)),
-                   as.character(round(median(c19$transit), 2)),
-                   as.character(round(median(c19$work), 2)),
-                   as.character(round(median(c19$residential), 2))),
-           max = c(as.character(max(c19$new_cases)),
+           median = c(as.character(round(median(c19$incidence), 2)),
+                      as.character(median(c19$date)),
+                      as.character(round(median(c19$retail), 2)),
+                      as.character(round(median(c19$groceries), 2)),
+                      as.character(round(median(c19$parks), 2)),
+                      as.character(round(median(c19$transit), 2)),
+                      as.character(round(median(c19$work), 2)),
+                      as.character(round(median(c19$residential), 2))),
+           max = c(as.character(round(max(c19$incidence), 2)),
                    as.character(max(c19$date)),
                    as.character(round(max(c19$retail), 2)),
                    as.character(round(max(c19$groceries), 2)),
@@ -419,51 +421,62 @@ data.frame(Variable = c("New Cases",
                    as.character(round(max(c19$transit), 2)),
                    as.character(round(max(c19$work), 2)),
                    as.character(round(max(c19$residential), 2))),
-           sd = c(as.character(round(sd(c19$new_cases), 2)),
-                   as.character(""),
-                   as.character(round(sd(c19$retail), 2)),
-                   as.character(round(sd(c19$groceries), 2)),
-                   as.character(round(sd(c19$parks), 2)),
-                   as.character(round(sd(c19$transit), 2)),
-                   as.character(round(sd(c19$work), 2)),
-                   as.character(round(sd(c19$residential), 2)))) %>%
-  kable(#"latex",
-        "html",
+           sd = c(as.character(round(sd(c19$incidence), 2)),
+                  as.character(""),
+                  as.character(round(sd(c19$retail), 2)),
+                  as.character(round(sd(c19$groceries), 2)),
+                  as.character(round(sd(c19$parks), 2)),
+                  as.character(round(sd(c19$transit), 2)),
+                  as.character(round(sd(c19$work), 2)),
+                  as.character(round(sd(c19$residential), 2)))) %>%
+  kable("latex",
         booktabs = TRUE,
         caption = "\\label{tab:descriptive-statistics}Descriptive statistics of the data set") %>%
-  kable_styling(latex_options = c("striped", "scale_down", "HOLD_position")) %>%
+  kable_styling(latex_options = c("striped", "scale_down", "HOLD_position"), font_size = 7) %>%
   column_spec(2, width = "12em") %>%
   footnote(general = "All mobility indicators are lagged 11-day moving averages")
 ```
 
-For analysis, all mobility indicators are centered so that the value of 1 is the base mobility, and a 0.01 deviation corresponds to a 1% change. The incubation time of the disease is between 2 and 12 days [95% interval; see @Lauer2020incubation]. Given this, it is to be expected that any changes in mobility will have a lagged effect (if any) on the discovery of new cases. For this reason, lagged moving averages of the mobility indicators are calculated. Furthermore, it is possible that mobility and reports of new cases of COVID-19 are endogenous, if the public adjust their mobility according to reports of the incidence. Therefore, in addition to being consistent with an incubation period, use of lagged indicators also helps to break this potential endogeneity.
+For analysis, all mobility indicators are centered so that the value of 1 is the baseline mobility, and a 0.01 deviation corresponds to a 1% change. The incubation time of the disease is between 2 and 12 days [95% interval; see @Lauer2020incubation]. Given this, it is to be expected that any changes in mobility will have a lagged effect on the discovery of new cases. For this reason, lagged moving averages of the mobility indicators are calculated. Furthermore, it is possible that mobility and reports of new cases of COVID-19 are endogenous, if the public adjust their mobility according to reports of the incidence. Therefore, in addition to being consistent with an incubation period, use of lagged indicators also helps to break this potential endogeneity.
 
-The lagged indicators are calculated as the mean of the mobility indicator using the values from date-minus-12-days to date-minus-2-days. Furthermore, using the cumulative number of reported COVID-19 cases, the total number of new daily cases is calculated. This variable (log-transformed after adding a small constant) is paired with the corresponding lagged moving average of the mobility indicators. The log-transformation is useful to avoid negative values of daily new cases when making predictions. Table \ref{tab:descriptive-statistics} shows the descriptive statistics of the data set. Analysis is based on correlation analysis, multivariate regression, and data visualization.
+The lagged indicators are calculated as the mean of the mobility indicator using the values from date-minus-12-days to date-minus-2-days. Furthermore, using the cumulative number of reported COVID-19 cases, the incidence is calculated after dividing by the population of the state (in 100,000s). This variable (log-transformed) is paired with the corresponding lagged moving average of the mobility indicators. The log-transformation is useful to avoid negative values of incidence when making predictions. Table \ref{tab:descriptive-statistics} shows the descriptive statistics of the data set. Analysis is based on correlation analysis, multivariate regression, and data visualization.
 
 Findings
 ===================
 
-Table \ref{tab:correlation-analysis} shows that the mobility indicators are highly correlated with each other. Two variables are selected for multivariate analysis: parks- and work-related mobility. Work has a high correlation with the outcome variable, and its correlation with parks is relatively weak, which increases the information content of the two variables. Furthermore, parks- and work-related mobility represent two dimensions of out-of-home activities: mandatory and discretionary travel.
+Table \ref{tab:correlation-analysis-log-incidence} shows that the mobility indicators are highly correlated with each other. Two variables are selected for multivariate analysis: parks- and work-related mobility. Work has a high correlation with the outcome variable, and its correlation with parks is relatively weak, which increases the information content of the two variables in multivariate analysis. Furthermore, parks- and work-related mobility represent two dimensions of out-of-home activities: mandatory and discretionary travel.
 
-```{r check-correlations, echo=FALSE}
+```{r check-correlations-log-new-cases, eval=FALSE, include=FALSE}
 #Check the correlation between the mobility indicators and incidence:
 c19 %>% 
   select(log_new_cases, retail, groceries, parks, transit, work, residential) %>%
   cor(use = "pairwise.complete.obs") %>%
-  kable(#"latex",
-        "html",
+  kable("latex",
         booktabs = TRUE,
         digits = 2,
         caption = "\\label{tab:correlation-analysis}Simple correlation between log(New Cases) and the mobility indicators")  %>%
-  kable_styling(latex_options = c("striped", "scale_down", "HOLD_position")) %>%
+  kable_styling(latex_options = c("striped", "scale_down", "HOLD_position"), font_size = 7) %>%
   footnote(general = "All mobility indicators are lagged 11-day moving averages")
 ```
 
-A regression model is estimated with the log of new daily cases as the dependent variable. The covariates enter the regression in the form of a second order polynomial expansion. In addition, the date (centered on April 5) is introduced to account for the temporal trend of the pandemic. Finally, an indicator variable for the state of New York and an interaction with the date are used to distinguish the unusually high incidence of the disease there. The results appear in Table \ref{tab:model-results}. The model provides a good fit to the data and all variables reported are significant at $p<0.05$ or better.
+```{r check-correlations-log-incidence, echo=FALSE}
+#Check the correlation between the mobility indicators and log of incidence:
+c19 %>% 
+  select(log_incidence, retail, groceries, parks, transit, work, residential) %>%
+  cor(use = "pairwise.complete.obs") %>%
+  kable("latex",
+        booktabs = TRUE,
+        digits = 2,
+        caption = "\\label{tab:correlation-analysis-log-incidence}Simple correlation between log(incidence) and the mobility indicators")  %>%
+  kable_styling(latex_options = c("striped", "scale_down"), font_size = 7) %>%
+  footnote(general = "All mobility indicators are lagged 11-day moving averages")
+```
 
-There is an overall temporal trend that indicates a growing number of cases over time, at an accelerating rate (see positive sign of date^2). Mobility related to parks and to work both tend to increase the number of new cases; the negative sign for their interaction is indicative of the trade-offs between these two forms of mobility and their impact on new cases. The influence of parks-related mobility was relatively weaker early in the pandemic (negative sign of the parks x date term) but has become more important over time (positive sign of the parks x date^2 term). The opposite happens with work-related mobility, which started with a greater effect (positive sign of work x date term), but whose impact has declined over time (negative sign of work x date^2 term) New York has on average more new daily cases than the rest of the states, but this has declined over time (see negative sign of NY x date). 
+A regression model is estimated with the log of incidence as the dependent variable. The covariates enter the regression in the form of a second order polynomial expansion. In addition, the date (centered on April 5) is introduced to account for the temporal trend of the pandemic. Finally, an indicator variable for the state of New York is used to distinguish the unusually high incidence of the disease there. The results of the model are shown in Table \ref{tab:model-results-log-incidence}. The model provides a good fit to the data and all variables reported are significant at $p<0.10$ or better.
 
-```{r model-estimation, include=FALSE}
+There is an overall temporal trend that indicates a growing incidence over time, but at a decelerating rate (see negative sign of date^2). Mobility related to parks and to work are both associated with higher incidence of COVID-19, however, the effect of parks-related mobility grows non-linearly (see positive sign of quadratic term), whereas the effect of work-related mobility grows at a decreasing rate (see negative sign of quadratic term). Furthermore, the negative sign for the interaction of these two mobility indicators captures the trade-offs between these two forms of mobility and their impact on incidence. The influence of parks-related mobility was relatively weak early in the pandemic (negative sign of the parks x date term) but has become more important over time (positive sign of the parks x date^2 term). The opposite happens with work-related mobility, the importance of which has declined over time (negative sign of work x date^2 term), but whose impact has declined over time (negative sign of work x date^2 term). As seen in the table, incidence of COVID-19 in New York is consistently higher.
+
+```{r model-estimation-log-new-cases, eval = FALSE, include=FALSE}
 #This is the regression model (forcing the regression through the intercept):
 mod1 <- lm(log_new_cases ~  0 +
              day +
@@ -480,11 +493,30 @@ mod1 <- lm(log_new_cases ~  0 +
              NY + 
              NYxday, 
            data = c19 #%>% filter(date >= "2020-04-01")
-           )
+)
 summ(mod1)
 ```
 
-```{r model-results, echo = FALSE}
+```{r model-estimation-log-incidence, include=FALSE}
+mod1 <- lm(log_incidence ~  0 +
+             day +
+             day2 +
+             parks2 + 
+             parks + 
+             parksXwork +
+             work +
+             work2 +
+             parksXday + 
+             parksXday2 +
+             #workXday +
+             workXday2 +
+             NY, #+ 
+           #NYxday, 
+           data = c19)
+summ(mod1)
+```
+
+```{r model-results-log-new-cases, eval=FALSE, echo = FALSE}
 data.frame(Variable = c("date",
                         "date^2",
                         "parks^2",
@@ -501,37 +533,63 @@ data.frame(Variable = c("date",
            Coefficient = as.numeric(coefficients(mod1)),
            pval = as.numeric(summary(mod1)$coefficients[,4])) %>%
   mutate(pval = ifelse(pval >= 0.001, round(pval, 4), "<0.001")) %>%
-  kable(#"latex",
-        "html",
+  kable("latex",
         booktabs = TRUE,
         digits = 4,
         caption = "\\label{tab:model-results}Results of estimating regression model. Dependent variable is log(New Cases + 0.0001).",
         align = c("l", "c", "c"),
         col.names = c("Variable", "Coefficient Estimate", "p-value")) %>%
-  kable_styling(latex_options = c("striped", "HOLD_position")) %>%
+  kable_styling(latex_options = c("striped", "HOLD_position"), font_size = 7) %>%
   footnote(general = c(paste("Coefficient of Determination $R^2$=", round(summary(mod1)$r.squared, 3)),
                        paste("Adjusted Coefficient of Determination $R^2$=", round(summary(mod1)$adj.r.squared, 3)),
                        paste("Standard Error $\\\\sigma$=", round(summary(mod1)$sigma, 3))),
            escape = FALSE)
 ```
 
-Visualization is the most effective way to understand the trend according to the mobility indicators and date. Figure \ref{fig:prediction-plots} shows the prediction surfaces on three different dates: March 21, when the first states began implementing stay-at-home orders; April 5, fifteen days later; and April 20, fifteen more days later, and at a time when some states started to consider relaxing stay-at-home orders. 
+```{r model-results-log-incidence, echo = FALSE}
+data.frame(Variable = c("date",
+                        "date^2",
+                        "parks^2",
+                        "parks",
+                        "parks x work",
+                        "work",
+                        "work^2",
+                        "parks x date",
+                        "parks x date^2",
+                        "work x date^2",
+                        "NY"),
+           Coefficient = as.numeric(coefficients(mod1)),
+           pval = as.numeric(summary(mod1)$coefficients[,4])) %>%
+  mutate(pval = ifelse(pval >= 0.001, round(pval, 4), "<0.001")) %>%
+  kable("latex",
+        booktabs = TRUE,
+        digits = 4,
+        caption = "\\label{tab:model-results}Results of estimating regression model. Dependent variable is log(Incidence).",
+        align = c("l", "c", "c"),
+        col.names = c("Variable", "Coefficient Estimate", "p-value")) %>%
+  kable_styling(latex_options = c("striped", "HOLD_position"), font_size = 7) %>%
+  footnote(general = c(paste("Coefficient of Determination $R^2$=", round(summary(mod1)$r.squared, 3)),
+                       paste("Adjusted Coefficient of Determination $R^2$=", round(summary(mod1)$adj.r.squared, 3)),
+                       paste("Standard Error $\\\\sigma$=", round(summary(mod1)$sigma, 3))),
+           escape = FALSE)
+```
 
-On March 21 there were still only minor departures from baseline mobility (recall that these are temporally lagged); the prediction surface at this point is relatively flat. This changes by April 5, when work-based mobility has declined substantially. Although every state registers lower work-based mobility, there are large variations in parks-based mobility, with some states seeing increases of up to 60% for this class of mobility. 
+Visualization is the most effective way to understand the trend according to the mobility indicators and date. Figure \ref{fig:prediction-plots} shows the prediction surfaces on four different dates at intervals of 15 days: March 21, when the first states began implementing stay-at-home orders; then April 5, two weeks into the lockdown; this is followed by April 20, at a time when some states started to consider relaxing stay-at-home orders; and finally May 5, when some states were reopening and/or letting stay-at-home orders lapse. 
 
-The prediction surface indicates an expectation of a greater number of new daily cases as either class of mobility increases, but the effect is not linear. On the last date examined, April 20, the trend becomes more steep for park-based mobility, even as this indicator continues to display large variations from the baseline in both directions. The white dashed lines in the plots are the folds of the saddles, and represent, for each date, the combination of parks- and work-related mobility levels that tended to minimize the emergence of new cases.
+On March 21 there were still only minor departures from the baseline level of mobility (recall that these are temporally lagged); the prediction surface at this point is relatively flat. This changes by April 5, when work-based mobility has declined substantially. Although every state registers lower work-based mobility, there are large variations in parks-based mobility, with some states seeing increases of up to 60% for this class of mobility. By May 5, park-related mobility in some states had increased to 200% of the baseline.
+
+The prediction surfaces are hyperbolic paraboloids on any given date, and in general indicate an expectation of higher incidences as either class of mobility increases, but with a progressively steeper trend for park-based mobility over time. On the last date examined, May 5, the trend becomes more steep for park-based mobility, even as this indicator continues to display large variations from the baseline in both directions. The white dashed lines in the plots are the folds of the saddles, and represent, for each date, the combination of parks- and work-related mobility levels that tended to minimize the incidence.
 
 ```{r summary-of-variables-for-prediction-grid, include=FALSE}
 c19 %>% 
-  #filter(day == 59) %>% 
-  select(date, day, parks, residential) %>%
+  select(date, day, parks, work) %>%
   summary()
 ```
 
 ```{r create-prediction-grid, include=FALSE}
-new.data = expand.grid(parks = seq(0.36, 1.9, by = 0.01),
+new.data = expand.grid(parks = seq(0.36, 2.28, by = 0.01),
                        work = seq(0.33, 1.08, by = 0.01),
-                       day = seq(-15, 15, 1),
+                       day = seq(-15, 30, 1),
                        NY = c(0, 1)) %>%
   mutate(parks2 = parks^2,
          work2 = work^2,
@@ -543,24 +601,36 @@ new.data = expand.grid(parks = seq(0.36, 1.9, by = 0.01),
          workXday2 = work * day2,
          NYxday = NY * day)
 
-new.data <- data.frame(new.data, log_new_cases = predict(mod1, newdata = new.data))
+new.data <- data.frame(new.data, log_incidence = predict(mod1, newdata = new.data))
 ```
 
 ```{r check-dates-for-examples, include=FALSE}
-c19 %>% filter(date == "2020-04-20" | date == "2020-03-21" | date == "2020-04-05" ) %>% select(date, day) %>% distinct()
+c19 %>% filter(date == "2020-03-21" | 
+                 date == "2020-04-05"| 
+                 date == "2020-04-20" | 
+                 date == "2020-05-05") %>% 
+  select(date, day) %>% distinct()
 ```
 
 ```{r check-mobility-indicators-on-2020-03-21, include=FALSE}
-c19 %>% filter(date == "2020-03-21") %>% select(day, parks, work) %>% summary()
+#Check the range of the mobility indicators on this date, to use in the plot
+c19 %>% 
+  filter(date == "2020-03-21") %>% 
+  select(day, parks, work) %>% 
+  summary()
 ```
 
 ```{r plot-03-21, include=FALSE, fig.cap="\\label{fig:plot-03-21}Prediction surface at various levels of the mobility indicators on March 21, 2020"}
-plot_03_21 <- ggplot(data = new.data %>% filter(day == -15, parks >= 0.8527 & parks <= 1.5555, work >= 0.7627 & work <= 0.9409),
-       aes(x = parks,
-           y = work)) +
-  geom_tile(aes(fill = log_new_cases)) + 
-  geom_contour(aes(z = log_new_cases), color = "black", size = 0.1, binwidth = 0.1, alpha = 1) +
-  geom_abline(intercept = 0.43, slope = 0.45, color = "white", linetype = "dashed", size = 0.5) +
+plot_03_21 <- ggplot(data = new.data %>% 
+                       filter(day == -15, 
+                              parks >= 0.8527 & parks <= 1.5555, 
+                              work >= 0.7627 & work <= 0.9409),
+                     aes(x = parks,
+                         y = work)) +
+  geom_tile(aes(fill = log_incidence)) + 
+  geom_contour(aes(z = log_incidence), color = "black", size = 0.1, binwidth = 0.1, alpha = 1) +
+  geom_abline(intercept = 0.75, slope = 0.115, color = "white", linetype = "dashed", size = 0.5) +
+  #geom_abline(intercept = 0.10, slope = 0.64, color = "black", linetype = "dashed", size = 0.5) +
   geom_point(data = c19 %>% filter(day == -15, state != "New York") %>% 
                select(parks, work)) +
   geom_text(data = c19 %>% 
@@ -575,23 +645,27 @@ plot_03_21 <- ggplot(data = new.data %>% filter(day == -15, parks >= 0.8527 & pa
               select(parks, work, state), 
             aes(label = state),
             nudge_y = -0.01) +
-#  scale_fill_distiller(name = "log(New Cases)", palette = "Reds", direction = 1, limits = c(4,15)) +
-  scale_fill_distiller(name = "log(New Cases)", palette = "Reds", direction = 1) +
+  scale_fill_distiller(name = "log(Incidence)", palette = "Reds", direction = 1) +
   theme_light() +
+  theme(legend.position = "bottom") +
   ggtitle("March 21, 2020")
 ```
 
 ```{r check-mobility-indicators-on-2020-04-05, include=FALSE}
-c19 %>% filter(date == "2020-04-05") %>% select(day, parks, work) %>% summary()
+#Check the range of the mobility indicators on this date, to use in the plot
+c19 %>% 
+  filter(date == "2020-04-05") %>% 
+  select(day, parks, work) %>% 
+  summary()
 ```
 
 ```{r plot-04-05, include=FALSE, fig.cap="\\label{fig:plot-04-05}Prediction surface at various levels of the mobility indicators on April 05, 2020"}
 plot_04_05 <- ggplot(data = new.data %>% filter(day == 0, parks >= 0.4545 & parks <= 1.6009, work >= 0.3673 & work <= 0.6955),
-       aes(x = parks,
-           y = work)) +
-  geom_tile(aes(fill = log_new_cases)) + 
-  geom_contour(aes(z = log_new_cases), color = "black", size = 0.1, binwidth = 0.1, alpha = 1) +
-  geom_abline(intercept = 0.162, slope = 0.45, color = "white", linetype = "dashed", size = 0.5) +
+                     aes(x = parks,
+                         y = work)) +
+  geom_tile(aes(fill = log_incidence)) + 
+  geom_contour(aes(z = log_incidence), color = "black", size = 0.1, binwidth = 0.1, alpha = 1) +
+  geom_abline(intercept = 0.10, slope = 0.64, color = "white", linetype = "dashed", size = 0.5) +
   geom_point(data = c19 %>% filter(day == 0, state != "New York") %>% 
                select(parks, work)) +
   geom_text(data = c19 %>% 
@@ -606,23 +680,30 @@ plot_04_05 <- ggplot(data = new.data %>% filter(day == 0, parks >= 0.4545 & park
               select(parks, work, state), 
             aes(label = state),
             nudge_y = -0.01) +
-  #scale_fill_distiller(name = "log(New Cases)", palette = "Reds", direction = 1, limits = c(4,15)) +
-  scale_fill_distiller(name = "log(New Cases)", palette = "Reds", direction = 1) +
+  scale_fill_distiller(name = "log(Incidence)", palette = "Reds", direction = 1) +
   theme_light() +
+  theme(legend.position = "bottom") +
   ggtitle("April 05, 2020")
 ```
 
 ```{r check-mobility-indicators-on-2020-04-20, include=FALSE}
-c19 %>% filter(date == "2020-04-20") %>% select(day, parks, work) %>% summary()
+#Check the range of the mobility indicators on this date, to use in the plot
+c19 %>% 
+  filter(date == "2020-04-20") %>% 
+  select(day, parks, work) %>% 
+  summary()
 ```
 
 ```{r plot-04-20, include=FALSE, fig.cap="\\label{fig:plot-04-20}Prediction surface at various levels of the mobility indicators on April 20, 2020"}
-plot_04_20 <- ggplot(data = new.data %>% filter(day == 15, parks >= 0.36 & parks <= 1.6309, work >= 0.3582 & work <= 0.6518),
-       aes(x = parks,
-           y = work)) +
-  geom_tile(aes(fill = log_new_cases)) + 
-  geom_contour(aes(z = log_new_cases), color = "black", size = 0.1, binwidth = 0.1, alpha = 1) +
-  geom_abline(intercept = 0.18, slope = 0.45, color = "white", linetype = "dashed", size = 0.5) +
+plot_04_20 <- ggplot(data = new.data %>%
+                       filter(day == 15, 
+                              parks >= 0.36 & parks <= 1.6309, 
+                              work >= 0.3582 & work <= 0.6518),
+                     aes(x = parks,
+                         y = work)) +
+  geom_tile(aes(fill = log_incidence)) + 
+  geom_contour(aes(z = log_incidence), color = "black", size = 0.1, binwidth = 0.1, alpha = 1) +
+  geom_abline(intercept = 0.10, slope = 0.64, color = "white", linetype = "dashed", size = 0.5) +
   geom_point(data = c19 %>% filter(day == 15, state != "New York") %>% 
                select(parks, work)) +
   geom_text(data = c19 %>% 
@@ -637,18 +718,57 @@ plot_04_20 <- ggplot(data = new.data %>% filter(day == 15, parks >= 0.36 & parks
               select(parks, work, state), 
             aes(label = state),
             nudge_y = -0.01) +
-#  scale_fill_distiller(name = "log(New Cases)", palette = "Reds", direction = 1, limits = c(4,15)) +
-  scale_fill_distiller(name = "log(New Cases)", palette = "Reds", direction = 1) +
+  scale_fill_distiller(name = "log(Incidence)", palette = "Reds", direction = 1) +
   theme_light() +
+  theme(legend.position = "bottom") +
   ggtitle("April 20, 2020")
 ```
 
-```{r prediction-plots, fig.height=9, echo=FALSE, fig.cap="\\label{fig:prediction-plots}Prediction surfaces at three points during the pandemic according to the model; the dots are a scatterplot of the parks- and work-related mobility indicators of the states on that date; the white dashed line is the fold of the saddle."}
-grid.arrange(plot_03_21, plot_04_05, plot_04_20, nrow = 3)
+```{r check-mobility-indicators-on-2020-05-05, include=FALSE}
+#Check the range of the mobility indicators on this date, to use in the plot
+c19 %>% 
+  filter(date == "2020-05-05") %>% 
+  select(day, parks, work) %>% 
+  summary()
 ```
 
-```{r plot-3d-surface, include=FALSE}
-# Choose day for the plot: April 20 is day == 15, April 5 is day == 0, March 21 is day == -15
+```{r plot-05-05, include=FALSE, fig.cap="\\label{fig:plot-05-05}Prediction surface at various levels of the mobility indicators on May 05, 2020"}
+plot_05_05 <- ggplot(data = new.data %>% 
+                       filter(day == 30, 
+                              parks >= 0.4045 & parks <= 2.2764, 
+                              work >= 0.3955 & work <= 0.7055),
+                     aes(x = parks,
+                         y = work)) +
+  geom_tile(aes(fill = log_incidence)) + 
+  geom_contour(aes(z = log_incidence), color = "black", size = 0.1, binwidth = 0.5, alpha = 1) +
+  geom_abline(intercept = 0.1, slope = 1, color = "white", linetype = "dashed", size = 0.5) +
+  #geom_abline(intercept = 0.10, slope = 0.64, color = "black", linetype = "dashed", size = 0.5) +
+  geom_point(data = c19 %>% filter(day == 30, state != "New York") %>% 
+               select(parks, work)) +
+  geom_text(data = c19 %>% 
+              filter(day == 30,
+                     state == "Arkansas" |
+                       state == "Mississippi" |
+                       state == "Oklahoma" |
+                       state == "Idaho" |
+                       state == "New Jersey" |
+                       state == "Michigan" |
+                       state == "California") %>%
+              select(parks, work, state), 
+            aes(label = state),
+            nudge_y = -0.01) +
+  scale_fill_distiller(name = "log(Incidence)", palette = "Reds", direction = 1) +
+  theme_light() +
+  theme(legend.position = "bottom") +
+  ggtitle("May 05, 2020")
+```
+
+```{r prediction-plots, fig.height=9, echo=FALSE, fig.cap="\\label{fig:prediction-plots}Prediction surfaces at three points during the pandemic according to the model; the dots are a scatterplot of the parks- and work-related mobility indicators of the states on that date; the white dashed line is the fold of the saddle."}
+grid.arrange(plot_03_21, plot_04_05, plot_04_20, plot_05_05, nrow = 2)
+```
+
+```{r plot-3d-surface, eval = FALSE, include=FALSE}
+# Choose day for the plot: March 21 is day == -15, April 5 is day == 0, April 20 is day == 15, May 5 is day 30
 plotly.data <- new.data %>% filter(day == 15) 
 parks <- seq(min(plotly.data$parks), max(plotly.data$parks), by = 0.01)
 work <- seq(min(plotly.data$work), max(plotly.data$work), by = 0.01)
@@ -658,15 +778,27 @@ log_new_cases <- xtabs(log_new_cases ~ work + parks, plotly.data)
 plot_ly(z = ~log_new_cases, x = ~parks, y = ~work) %>% 
   add_surface() %>%
   layout(scene = list(
-      xaxis = list(title = "parks"),
-      yaxis = list(title = "work"),
-      zaxis = list(title = "log(New_Cases)"),
-      aspectmode='cube'))
+    xaxis = list(title = "parks"),
+    yaxis = list(title = "work"),
+    zaxis = list(title = "log(New_Cases)"),
+    aspectmode='cube'))
 ```
 
-The results suggest that over time the benefits of reduced work-related mobility can be offset by parks-related mobility. For example, on March 21, New Jersey and Idaho had similar levels of park-related mobility. By April 20, New Jersey had substantially reduced park-related mobility, whereas Idaho's was even higher than in March. The estimated and actual number of new cases grew in the intervening period; however, New Jersey's growth in new cases (from March 21 to April 20) was only 894%, whereas Idaho's was 1030%.
+```{r calculate-example-change-incidence, include=FALSE}
+example_change_incidence <- c19 %>% 
+  filter(date == "2020-03-21" | date == "2020-04-05", 
+         state == "California" | state == "Idaho") %>%
+  select(date, state, incidence)  %>%
+  pivot_wider(names_from = state, values_from = incidence) %>%
+  mutate(change_ID = (Idaho - lag(Idaho, 1))/lag(Idaho, 1),
+         change_CA = (California - lag(California, 1))/lag(California, 1)) %>%
+  drop_na() %>%
+  select(starts_with("change_"))
+```
 
-These results suggest the potential of GCMR to investigate the spread of COVID-19, but also point at some limitations. The baseline level is not defined in a metric that is amenable to policy development (e.g., person-km travelled). Without a clearer understanding of the absolute levels of these variables, their use can suggest trends, but their potential for applied policy analysis appears to be more limited.
+The results suggest that over time the benefits of reduced work-related mobility can be easily offset by parks-related mobility. For example, California has consistently registered lower levels of parks-related mobility whereas Idaho has had high levels of this kind of mobility throughout the pandemic. The incidence of COVID-19 grew in the intervening period; however, between March 21 and May 5 growth in incidence in California was `r round(example_change_incidence$change_CA * 100, 2)`% whereas Idaho's growth in incidence over the same period was `r round(example_change_incidence$change_ID * 100, 2)`%.
+
+These results suggest the potential of GCMR to investigate the potential effects of mobility on the incidence of COVID-19. In particular, growth appears to be more strongly driven by parks-related mobility. In terms of the use of these mobility indicators, there are some limitations that must be acknowledged. The baseline level is not defined in a metric that is amenable to policy development (e.g., person-km travelled). Without a clearer understanding of the absolute levels of these variables, these indicators are useful for inference and perhaps short-term forecasting, but their potential for applied policy analysis appears to be more limited.
 
 References {#references .unnumbered}
 ==========

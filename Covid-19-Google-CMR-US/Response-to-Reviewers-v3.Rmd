@@ -1,0 +1,531 @@
+---
+title: "Response to Reviewers"
+author: "Antonio Paez"
+date: "5/11/2020"
+output: pdf_document
+---
+
+```{r load-packages, include=FALSE}
+#Load the packages needed to read and work with the data
+library(adespatial)
+library(countrycode)
+library(gridExtra)
+library(interactions)
+library(jtools)
+library(kableExtra)
+library(lubridate)
+library(metR)
+library(plotly)
+library(RCurl)
+library(sf)
+library(spdep)
+library(tidyverse)
+library(tigris)
+library(usmap)
+library(wppExplorer)
+```
+
+```{r load-saved-gcmr-data, include=FALSE}
+#Load data:
+load("gmobility.RData")
+```
+
+```{r extract-gcmr-for-us, include=FALSE}
+gmobility <- gmobility %>%
+  filter(country_region == "United States") %>%
+  droplevels()
+```
+
+```{r prepare-mobility-report-data, include=FALSE}
+#`date` is stored as a factor which is not ideal work with times; Change format:
+gmobility <- gmobility %>%
+  mutate(date = lubridate::ymd(date)) %>%
+  #rename the annoyingly long names of the columns to something more practical
+  transmute(date,
+            state = as.character(sub_region_1),
+         county = as.character(sub_region_2),
+         r_and_r = retail_and_recreation_percent_change_from_baseline, 
+         g_and_p = grocery_and_pharmacy_percent_change_from_baseline, 
+         parks = parks_percent_change_from_baseline,
+         transit = transit_stations_percent_change_from_baseline, 
+         work = workplaces_percent_change_from_baseline,
+         residential = residential_percent_change_from_baseline) %>%
+  #convert the mobility indicators to differences from the baseline, so "1" is the baseline value
+  mutate(r_and_r = 1 + r_and_r/100,
+         g_and_p = 1 + g_and_p/100,
+         parks = 1 + parks/100,
+         transit = 1 + transit/100,
+         work = 1 + work/100,
+         residential = 1 + residential/100)
+```
+
+```{r filter-state-gcmr-data, include=FALSE}
+#To extract the state-level mobility indicators select those records that do not include the label for the county (i.e., sub_region_2 is empty), and that are not national level statistics (i.e., sub_region_1 is not empty)
+cmr <- gmobility %>%
+  filter(state !="", 
+         county == "")
+```
+
+```{r load-saved-covid-19-data, include=FALSE}
+#Load data:
+load("covid19_nyt.RData")
+```
+
+```{r coterminous-states, include=FALSE}
+#filter states to keep only the coterminous states
+c19 <- c19 %>%
+  filter(state != "Hawaii",
+         state != "Alaska",
+         state != "United States Virgin Islands",
+         state != "Commonwealth of the Northern Mariana Islands",
+         state != "Guam",
+         state != "American Samoa",
+         state != "Puerto Rico")
+```
+
+```{r add-day-variable, include=FALSE}
+#add day variable:
+c19 <- c19 %>%
+  mutate(day = yday(date) - yday("2020-04-05"))
+```
+
+```{r calculate-new-daily-cases, include=FALSE}
+#To calculate the number of new daily cases by state, we need to lag the Cases variable and substract the previous total. Also calculate the daily percent change in new cases (pct_change), and the percent increase in total cases (pct_increase):
+c19 <- c19 %>%
+  group_by(state) %>%
+  mutate(new_cases = cases - lag(cases, 1),
+         pct_change = (new_cases - lag(new_cases, 1))/lag(new_cases, 1),
+         pct_increase = (cases - lag(cases, 1))/lag(cases, 1)) %>%
+  ungroup() %>%
+  #there are two record with negative numbers of new cases, likely corrections (Georgia in 2020-04-12, Idaho in 2020-05-03). Remove record:
+  filter(new_cases >= 0)
+```
+
+```{r state-population-data, include=FALSE}
+#Retrieve population data:
+population <- statepop %>%
+  transmute(pop_2015, state = full)
+```
+
+```{r join-population-to-covid-19-data, include=FALSE}
+#Join population to covid-19 data:
+c19 <- c19 %>%
+  mutate(state = as.character(state)) %>%
+  left_join(population, by = c("state" = "state"))
+```
+
+```{r calculate-incidence, include=FALSE}
+#Calculate the incidence of reported cases by 100,000 population:
+c19 <- c19 %>%
+  mutate(incidence = cases/(pop_2015/100000),
+         log_incidence = log(incidence))
+```
+
+```{r calculate-log-new-cases, include=FALSE}
+#calculate log of new cases
+c19 <- c19 %>% 
+  mutate(log_new_cases = log(new_cases + 0.001))
+```
+
+```{r join-gcmr-and-covid-19-data, include=FALSE}
+#Join the tables:
+c19 <- c19 %>% 
+  mutate(state = as.character(state)) %>%
+  left_join(cmr, by = c("state" = "state", "date" = "date"))
+```
+
+```{r calculate-lagged-mobility-indicators, include=FALSE}
+#The potential salutary effect of the lockdown (measured in terms of reduced mobility) are not immediate, given the incubation period of the disease. The incubation period has been estimated to be between 2 and 11 days (95% interval) by [Lauer et al. (2020)](https://annals.org/aim/fullarticle/2762808/incubation-period-coronavirus-disease-2019-covid-19-from-publicly-reported). If we wanted to explore the way reduced mobility correlates with number of new cases, we would need to lag the mobility variables by some period. 
+
+# Lagged retail and recreation: 11 day moving average
+r_and_r_lag11 <- cmr %>% 
+  group_by(state) %>%
+  group_modify(~ {((lag(.x$r_and_r, 12) + 
+                      lag(.x$r_and_r, 11) + 
+                      lag(.x$r_and_r, 10) + 
+                      lag(.x$r_and_r, 9) + 
+                      lag(.x$r_and_r, 8) + 
+                      lag(.x$r_and_r, 7) + 
+                      lag(.x$r_and_r, 6) + 
+                      lag(.x$r_and_r, 5) + 
+                      lag(.x$r_and_r, 4) + 
+                      lag(.x$r_and_r, 3) + 
+                      lag(.x$r_and_r, 2))/11) %>%
+      enframe()}) %>%
+  ungroup() %>%
+  transmute(Mean_r_and_r_lag11 = value)  %>%
+  cbind(cmr) %>%
+  transmute(state = as.character(state), 
+            date, Mean_r_and_r_lag11)
+
+# Lagged groceries and pharmacies: 11 day moving average
+g_and_p_lag11 <- cmr %>% 
+  group_by(state) %>%
+  group_modify(~ {((lag(.x$g_and_p, 12) + 
+                      lag(.x$g_and_p, 11) + 
+                      lag(.x$g_and_p, 10) + 
+                      lag(.x$g_and_p, 9) + 
+                      lag(.x$g_and_p, 8) + 
+                      lag(.x$g_and_p, 7) + 
+                      lag(.x$g_and_p, 6) + 
+                      lag(.x$g_and_p, 5) + 
+                      lag(.x$g_and_p, 4) + 
+                      lag(.x$g_and_p, 3) + 
+                      lag(.x$g_and_p, 2))/11) %>%
+      enframe()}) %>%
+  ungroup() %>%
+  transmute(Mean_g_and_p_lag11 = value)  %>%
+  cbind(cmr) %>%
+  transmute(state = as.character(state), 
+            date, Mean_g_and_p_lag11)
+
+# Lagged parks: 11 day moving average
+parks_lag11 <- cmr %>% 
+  group_by(state) %>%
+  group_modify(~ {((lag(.x$parks, 12) + 
+                      lag(.x$parks, 11) + 
+                      lag(.x$parks, 10) + 
+                      lag(.x$parks, 9) + 
+                      lag(.x$parks, 8) + 
+                      lag(.x$parks, 7) + 
+                      lag(.x$parks, 6) + 
+                      lag(.x$parks, 5) + 
+                      lag(.x$parks, 4) + 
+                      lag(.x$parks, 3) + 
+                      lag(.x$parks, 2))/11) %>%
+      enframe()}) %>%
+  ungroup() %>%
+  transmute(Mean_parks_lag11 = value)  %>%
+  cbind(cmr) %>%
+  transmute(state = as.character(state), 
+            date, Mean_parks_lag11)
+
+# Lagged groceries and pharmacies: 11 day moving average
+transit_lag11 <- cmr %>% 
+  group_by(state) %>%
+  group_modify(~ {((lag(.x$transit, 12) + 
+                      lag(.x$transit, 11) + 
+                      lag(.x$transit, 10) + 
+                      lag(.x$transit, 9) + 
+                      lag(.x$transit, 8) + 
+                      lag(.x$transit, 7) + 
+                      lag(.x$transit, 6) + 
+                      lag(.x$transit, 5) + 
+                      lag(.x$transit, 4) + 
+                      lag(.x$transit, 3) + 
+                      lag(.x$transit, 2))/11) %>%
+      enframe()}) %>%
+  ungroup() %>%
+  transmute(Mean_transit_lag11 = value)  %>%
+  cbind(cmr) %>%
+  transmute(state = as.character(state), 
+            date, Mean_transit_lag11)
+
+# Lagged groceries and pharmacies: 11 day moving average
+work_lag11 <- cmr %>% 
+  group_by(state) %>%
+  group_modify(~ {((lag(.x$work, 12) + 
+                      lag(.x$work, 11) + 
+                      lag(.x$work, 10) + 
+                      lag(.x$work, 9) + 
+                      lag(.x$work, 8) + 
+                      lag(.x$work, 7) + 
+                      lag(.x$work, 6) + 
+                      lag(.x$work, 5) + 
+                      lag(.x$work, 4) + 
+                      lag(.x$work, 3) + 
+                      lag(.x$work, 2))/11) %>%
+      enframe()}) %>%
+  ungroup() %>%
+  transmute(Mean_work_lag11 = value)  %>%
+  cbind(cmr) %>%
+  transmute(state = as.character(state), 
+            date, Mean_work_lag11)
+
+# Lagged residential: 11 day moving average
+residential_lag11 <- cmr %>% 
+  group_by(state) %>%
+  group_modify(~ {((lag(.x$residential, 12) + 
+                      lag(.x$residential, 11) + 
+                      lag(.x$residential, 10) + 
+                      lag(.x$residential, 9) + 
+                      lag(.x$residential, 8) + 
+                      lag(.x$residential, 7) + 
+                      lag(.x$residential, 6) + 
+                      lag(.x$residential, 5) + 
+                      lag(.x$residential, 4) + 
+                      lag(.x$residential, 3) + 
+                      lag(.x$residential, 2))/11) %>%
+      enframe()}) %>%
+  ungroup() %>%
+  transmute(Mean_residential_lag11 = value)  %>%
+  cbind(cmr) %>%
+  transmute(state = as.character(state), 
+            date, Mean_residential_lag11)
+```
+
+```{r join-lagged-indicators, include=FALSE}
+#join lagged mobility indicators to table:
+c19 <- c19 %>%
+  mutate(state = as.character(state)) %>%
+  left_join(r_and_r_lag11, by = c("state" = "state", "date" = "date")) %>%
+  left_join(g_and_p_lag11, by = c("state" = "state", "date" = "date"))  %>%
+  left_join(parks_lag11, by = c("state" = "state", "date")) %>%
+  left_join(transit_lag11, by = c("state" = "state", "date")) %>%
+  left_join(work_lag11, by = c("state" = "state", "date")) %>%
+  left_join(residential_lag11, by = c("state" = "state", "date"))
+```
+
+```{r remove-nas, include=FALSE}
+#Remove all the "NAs" to obtain a clean table with COVID-19 and mobility information:
+c19 <- c19 %>%
+  drop_na()
+```
+
+```{r prepare-variables-for-analysis, include=FALSE}
+#replace mobility indicators by their lagged moving averages
+c19 <- c19 %>% 
+  mutate(retail = Mean_r_and_r_lag11,
+         groceries = Mean_g_and_p_lag11,
+         parks = Mean_parks_lag11,
+         parks2 = Mean_parks_lag11^2,
+         transit = Mean_transit_lag11,
+         work = Mean_work_lag11,
+         work2 = work^2,
+         residential = Mean_residential_lag11,
+         residential2 = Mean_residential_lag11^2,
+         parksXresidential = parks * residential,
+         parksXwork = parks * work,
+         day2 = day^2,
+         parksXday = parks * day,
+         parksXday2 = parks * day2,
+         workXday = work * day,
+         workXday2 = work * day2,
+         residentialXday = residential * day,
+         residentialXday2 = residential * day2,
+         NY = ifelse(state == "New York", 1, 0),
+         NYxday = NY * day)
+```
+
+# Reviewer 1
+
+Thanks for the revisions. I think they make the paper stronger. 
+
+>\textcolor{blue}{Thank you for your positive assessment of the paper and comments.}
+
+I have a question on the rationale for using daily new cases (log transformed) as a dependent variable. Given the large differences in population size, urban areas and densities across states, wouldn’t using percentage change in new cases day to day be a more appropriate dependent variable (or some moving average of it)? Such a setup removes the population size effect...I would suggest the authors at least test the percent variable and see if it allows for a simpler specification. Or alternately, explain why log(new cases) is a valid measure to answer their question given differences across states that are not accounted for. 
+
+>\textcolor{blue}{Thank you for this comment. I understand percentage change in new cases for state $i$ and day $t$ to mean the following:}
+
+$$
+pct\_change_{i,t} = \frac{new\_cases_{i,t} - new\_cases_{i,t-1}}{new\_cases_{i,t-1}}
+$$
+
+>\textcolor{blue}{Alas, as seen in Table \ref{tab:correlation-analysis-pct-change} below, percent change correlates poorly with the independent variables, and the low correlations translate into a poor fit with non-significant coefficients (see Table \ref{tab:model-results-pct-change}). This is because the daily percent change in new cases is very noisy and not a good indication of a trend: even small changes (say from +1 to -1 case change from day to day) change the sign of the variable.}
+
+```{r check-correlations-pct-change, echo=FALSE}
+#Check the correlation between the mobility indicators and day-to-day percent change in new cases:
+c19 %>% 
+  filter(is.finite(pct_change)) %>%
+  select(pct_change, retail, groceries, parks, transit, work, residential) %>%
+  cor(use = "pairwise.complete.obs") %>%
+  kable("latex",
+        booktabs = TRUE,
+        digits = 2,
+        caption = "\\label{tab:correlation-analysis-pct-change}Simple correlation between day to day percent change in new Cases and the mobility indicators")  %>%
+  kable_styling(latex_options = c("striped"), font_size = 7) %>%
+  footnote(general = "All mobility indicators are lagged 11-day moving averages")
+```
+
+```{r model-estimation-pct-change, include=FALSE}
+mod_pct_change <- lm(pct_change ~  0 +
+                         day +
+                         day2 +
+                         parks2 + 
+                         parks + 
+                         parksXwork +
+                         work +
+                         work2 +
+                         parksXday + 
+                         parksXday2 +
+                         workXday +
+                         workXday2 +
+                         NY + 
+                         NYxday, 
+                       data = c19 %>% filter(is.finite(pct_change))
+)
+summ(mod_pct_change)
+```
+
+```{r model-results-pct-change, echo = FALSE}
+data.frame(Variable = c("date",
+                        "date^2",
+                        "parks^2",
+                        "parks",
+                        "parks x work",
+                        "work",
+                        "work^2",
+                        "parks x date",
+                        "parks x date^2",
+                        "work x day^2",
+                        "work x date^2",
+                        "NY",
+                        "NY x date"),
+           Coefficient = as.numeric(coefficients(mod_pct_change)),
+           pval = as.numeric(summary(mod_pct_change)$coefficients[,4])) %>%
+  mutate(pval = ifelse(pval >= 0.001, round(pval, 4), "<0.001")) %>%
+  kable("latex",
+        booktabs = TRUE,
+        digits = 4,
+        caption = "\\label{tab:model-results-pct-change}Dependent variable is day-to-day percent change in new cases.",
+        align = c("l", "c", "c"),
+        col.names = c("Variable", "Coefficient Estimate", "p-value")) %>%
+  kable_styling(latex_options = c("striped"), font_size = 7) %>%
+  footnote(general = c(paste("Coefficient of Determination $R^2$=", round(summary(mod_pct_change)$r.squared, 3)),
+                       paste("Adjusted Coefficient of Determination $R^2$=", round(summary(mod_pct_change)$adj.r.squared, 3)),
+                       paste("Standard Error $\\\\sigma$=", round(summary(mod_pct_change)$sigma, 3))),
+           escape = FALSE)
+```
+
+>\textcolor{blue}{Instead of day-to-day percent change in new cases, we could define a variable that measures the percentage increase in total cases:}
+
+$$
+pct\_increase_{i,t} = \frac{cases_{i,t} - cases_{i,t-1}}{cases_{i,t-1}}
+$$
+
+>\textcolor{blue}{Again, a variable like this would normalize for the caseload in each state. The correlations for percent increase are shown in Table \ref{tab:correlation-analysis-pct-increase}, were we see that they are considerably higher than for day-to-day percent change in cases, but still lower than for log of new cases. If we use daily percent increase in total cases as the dependent variable, the resulting model is somewhat more parsimonious but the goodness of fit is also quite a bit lower than the model with log of new cases (see Table \ref{tab:model-results-pct-increase}).}
+
+```{r check-correlations-pct-increase, echo=FALSE}
+#Check the correlation between the mobility indicators and daily percent increase in total cases:
+c19 %>% 
+  select(pct_increase, retail, groceries, parks, transit, work, residential) %>%
+  cor(use = "pairwise.complete.obs") %>%
+  kable("latex",
+        booktabs = TRUE,
+        digits = 2,
+        caption = "\\label{tab:correlation-analysis-pct-increase}Simple correlation between daily percent increase in total cases and the mobility indicators")  %>%
+  kable_styling(latex_options = c("striped"), font_size = 7) %>%
+  footnote(general = "All mobility indicators are lagged 11-day moving averages")
+```
+
+```{r model-estimation-pct-increase, include=FALSE}
+mod_pct_increase <- lm(pct_increase ~  0 +
+                         #day +
+                         #day2 +
+                         #parks2 + 
+                         parks + 
+                         parksXwork +
+                         work +
+                         work2 +
+                         parksXday + 
+                         parksXday2 +
+                         #workXday +
+                         workXday2 +
+                         NY + 
+                         NYxday, 
+                       data = c19)
+summ(mod_pct_increase)
+```
+
+```{r model-results-pct-increase, echo = FALSE}
+data.frame(Variable = c(#"date",
+                        #"date^2",
+                        #"parks^2",
+                        "parks",
+                        "parks x work",
+                        "work",
+                        "work^2",
+                        "parks x date",
+                        "parks x date^2",
+                        "work x date^2",
+                        "NY",
+                        "NY x date"),
+           Coefficient = as.numeric(coefficients(mod_pct_increase)),
+           pval = as.numeric(summary(mod_pct_increase)$coefficients[,4])) %>%
+  mutate(pval = ifelse(pval >= 0.001, round(pval, 4), "<0.001")) %>%
+  kable("latex",
+        booktabs = TRUE,
+        digits = 4,
+        caption = "\\label{tab:model-results-pct-increase}Dependent variable is daily percent increase in total cases.",
+        align = c("l", "c", "c"),
+        col.names = c("Variable", "Coefficient Estimate", "p-value")) %>%
+  kable_styling(latex_options = c("striped"), font_size = 7) %>%
+  footnote(general = c(paste("Coefficient of Determination $R^2$=", round(summary(mod_pct_increase)$r.squared, 3)),
+                       paste("Adjusted Coefficient of Determination $R^2$=", round(summary(mod_pct_increase)$adj.r.squared, 3)),
+                       paste("Standard Error $\\\\sigma$=", round(summary(mod_pct_increase)$sigma, 3))),
+           escape = FALSE)
+```
+
+>\textcolor{blue}{The examples above show that using the day-to-day percent daily change in new cases and percent daily increase in total cases does not result in better models. The point about controlling for population still stands. This made me think of a different dependent variable, namely incidence per 100,000:}
+
+$$
+incidence_{i,t} = \frac{Cases_{i,t}}{population_{i}/100,000}
+$$
+
+>\textcolor{blue}{Incidence normalizes the number of cases and accounts for the size of the population at risk. This variable is log-transformed to scale it (it has a long tail, as you would expect). The correlations with the mobility indicators are shown in Table \ref{tab:correlation-analysis-log-incidence}. Using the log of incidence as the dependent variable results in a somewhat more parsimonious model with better goodness of fit (see Table \ref{tab:model-results-log-incidence}). Based on these results, this is the model that I report in the paper now. It is worthwhile noting that qualitatively the results are very similar, but with a slightly smaller model that also performs better.}
+
+```{r check-correlations-log-incidence, echo=FALSE}
+#Check the correlation between the mobility indicators and log of incidence:
+c19 %>% 
+  select(log_incidence, retail, groceries, parks, transit, work, residential) %>%
+  cor(use = "pairwise.complete.obs") %>%
+  kable("latex",
+        booktabs = TRUE,
+        digits = 2,
+        caption = "\\label{tab:correlation-analysis-log-incidence}Simple correlation between log(incidence) and the mobility indicators")  %>%
+  kable_styling(latex_options = c("striped"), font_size = 7) %>%
+  footnote(general = "All mobility indicators are lagged 11-day moving averages")
+```
+
+```{r model-estimation-log-incidence, include=FALSE}
+mod1 <- lm(log_incidence ~  0 +
+                         day +
+                         day2 +
+                         parks2 + 
+                         parks + 
+                         parksXwork +
+                         work +
+                         work2 +
+                         parksXday + 
+                         parksXday2 +
+                         #workXday +
+                         workXday2 +
+                         NY, #+ 
+                         #NYxday, 
+                       data = c19)
+summ(mod1)
+```
+
+```{r model-results-log-incidence, echo = FALSE}
+data.frame(Variable = c("date",
+                        "date^2",
+                        "parks^2",
+                        "parks",
+                        "parks x work",
+                        "work",
+                        "work^2",
+                        "parks x date",
+                        "parks x date^2",
+                        "work x date^2",
+                        "NY"),
+           Coefficient = as.numeric(coefficients(mod1)),
+           pval = as.numeric(summary(mod1)$coefficients[,4])) %>%
+  mutate(pval = ifelse(pval >= 0.001, round(pval, 4), "<0.001")) %>%
+  kable("latex",
+        booktabs = TRUE,
+        digits = 4,
+        caption = "\\label{tab:model-results-log-incidence}Dependent variable is log(Incidence).",
+        align = c("l", "c", "c"),
+        col.names = c("Variable", "Coefficient Estimate", "p-value")) %>%
+  kable_styling(latex_options = c("striped"), font_size = 7) %>%
+  footnote(general = c(paste("Coefficient of Determination $R^2$=", round(summary(mod1)$r.squared, 3)),
+                       paste("Adjusted Coefficient of Determination $R^2$=", round(summary(mod1)$adj.r.squared, 3)),
+                       paste("Standard Error $\\\\sigma$=", round(summary(mod1)$sigma, 3))),
+           escape = FALSE)
+```
+
+I am also concerned that almost all the variables in the model have a quadratic form and by the number of interactions in the model. Is this an artifact of not controlling for the population size effect? 
+
+>\textcolor{blue}{The quadratic form is to capture trends in attribute space. As the performance of the model shows, these terms are effective at this task. And seeing how the terms are significant even after controlling for population size (i.e., modelling the incidence per 100,000 instead of new cases), I hope that your concerns will be allayed.}
+
+>\textcolor{blue}{Finally, I have taken the opportunity of this revision to update the analysis to May 5, 2020.}
