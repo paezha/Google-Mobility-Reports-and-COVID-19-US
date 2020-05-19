@@ -13,8 +13,8 @@ McMaster University
 1280 Main Street West, Hamilton, ON L8S 4K1  
 Canada
 
-(third version of paper after second round of anonymous reviews;
-resubmitted to Transport Findings on May 19, 2020)
+(Final version of paper; accepted for publication in Transport Findings
+on May 19, 2020)
 
 ## Abstract
 
